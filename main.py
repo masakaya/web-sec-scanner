@@ -3,7 +3,7 @@
 
 def main() -> None:
     """Execute main application logic."""
-    print("Hello from python-uv-project!")
+    print("WebSecScanner - Modern Python Web Security Scanner")
 
 
 if __name__ == "__main__":

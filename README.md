@@ -1,18 +1,19 @@
-# Python Project Template with uv
+# WebSecScanner
 
-[![Tests](https://github.com/masakaya/python-uv-project/actions/workflows/test.yml/badge.svg)](https://github.com/masakaya/python-uv-project/actions/workflows/test.yml)
-[![codecov](https://codecov.io/gh/masakaya/python-uv-project/branch/main/graph/badge.svg)](https://codecov.io/gh/masakaya/python-uv-project)
-[![Ruff](https://github.com/masakaya/python-uv-project/actions/workflows/ruff.yml/badge.svg)](https://github.com/masakaya/python-uv-project/actions/workflows/ruff.yml)
-[![mypy](https://github.com/masakaya/python-uv-project/actions/workflows/mypy.yml/badge.svg)](https://github.com/masakaya/python-uv-project/actions/workflows/mypy.yml)
+[![Tests](https://github.com/masakaya/web-sec-scanner/actions/workflows/test.yml/badge.svg)](https://github.com/masakaya/web-sec-scanner/actions/workflows/test.yml)
+[![codecov](https://codecov.io/gh/masakaya/web-sec-scanner/branch/main/graph/badge.svg)](https://codecov.io/gh/masakaya/web-sec-scanner)
+[![Ruff](https://github.com/masakaya/web-sec-scanner/actions/workflows/ruff.yml/badge.svg)](https://github.com/masakaya/web-sec-scanner/actions/workflows/ruff.yml)
+[![mypy](https://github.com/masakaya/web-sec-scanner/actions/workflows/mypy.yml/badge.svg)](https://github.com/masakaya/web-sec-scanner/actions/workflows/mypy.yml)
 [![Python](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 
-Modern Python プロジェクトテンプレート - 高速パッケージマネージャ `uv` とコード品質ツールの統合
+Modern Python Webセキュリティスキャナー - PrefectワークフローとWebGoatテスト環境を統合
 
-> **📊 カバレッジレポート**: [Codecov](https://codecov.io/gh/masakaya/python-uv-project) で確認できます。各 PR にも自動的にカバレッジレポートがコメントされます。
+> **📊 カバレッジレポート**: [Codecov](https://codecov.io/gh/masakaya/web-sec-scanner) で確認できます。各 PR にも自動的にカバレッジレポートがコメントされます。
 
 ## 📋 概要
 
-このテンプレートは、Pythonプロジェクトを素早く立ち上げるための最新のベストプラクティスを統合したものです。
+WebSecScannerは、Webアプリケーションのセキュリティ脆弱性を検出するための最新のPythonベーススキャナーです。
+Prefectによるワークフローオーケストレーションと、WebGoatによる実践的なテスト環境を統合しています。
 
 ### 主な特徴
 
@@ -45,8 +46,8 @@ Modern Python プロジェクトテンプレート - 高速パッケージマネ
 
 ```bash
 # リポジトリをクローン
-git clone <your-repo-url>
-cd python-uv-project
+git clone https://github.com/masakaya/web-sec-scanner.git
+cd web-sec-scanner
 
 # 依存関係をインストール
 uv sync --all-groups
@@ -62,20 +63,17 @@ poe webgoat-start
 
 ### WebGoatテスト環境（オプション）
 
-セキュリティスキャナーのテスト用に、WebGoat環境を起動できます：
+セキュリティ診断レポート出力のサンプルとして、WebGoat環境を利用できます：
 
 ```bash
 # WebGoat起動
 poe webgoat-start
 
-# アクセス
-# WebGoat: http://localhost:8080/WebGoat
-# WebWolf: http://localhost:9090/WebWolf
-
 # WebGoat停止
 poe webgoat-stop
 ```
 
+WebGoatは意図的に脆弱性を含んだWebアプリケーションで、セキュリティ診断ツールでスキャンしてレポートを生成するためのテスト対象として使用します。
 詳細は [docs/WEBGOAT.md](docs/WEBGOAT.md) を参照してください。
 
 ---
@@ -239,8 +237,8 @@ poe webgoat-stop   # WebGoat停止
 **[docs/WEBGOAT.md](docs/WEBGOAT.md)**
 - WebGoatの基本的な使い方
 - テスト環境の起動・停止
-- セキュリティ脆弱性の学習
-- スキャナーのテスト方法
+- セキュリティ診断ツールとの連携
+- レポート出力のテスト方法
 - セキュリティ上の注意事項
 
 ---
