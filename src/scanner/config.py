@@ -6,26 +6,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
 
-
-def find_project_root() -> Path:
-    """プロジェクトルートディレクトリを探す。
-
-    pyproject.tomlまたは.gitディレクトリを持つ親ディレクトリを探す。
-    見つからない場合は、カレントディレクトリを返す。
-
-    Returns:
-        プロジェクトルートのPath
-
-    """
-    current = Path.cwd()
-
-    # 現在のディレクトリから親を辿ってpyproject.tomlまたは.gitを探す
-    for parent in [current, *current.parents]:
-        if (parent / "pyproject.toml").exists() or (parent / ".git").exists():
-            return parent
-
-    # 見つからない場合はカレントディレクトリを返す
-    return current
+from utils import find_project_root
 
 
 class ScanConfig(BaseModel):
