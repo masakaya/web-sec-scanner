@@ -48,6 +48,12 @@ class ScanConfig(BaseModel):
     max_duration: int = Field(30, description="Maximum scan duration in minutes", gt=0)
     max_depth: int = Field(10, description="Maximum crawl depth", gt=0)
     max_children: int = Field(20, description="Maximum children per node", gt=0)
+    thread_per_host: int = Field(
+        10, description="Number of threads per host for active scanning", gt=0
+    )
+    hosts_per_scan: int = Field(
+        5, description="Number of hosts to scan in parallel", gt=0
+    )
     network_name: str | None = Field(None, description="Docker network name")
     language: str = Field("ja_JP", description="Language for scanner (default: ja_JP)")
     config_file: Path | None = Field(
@@ -85,7 +91,7 @@ class ScanConfig(BaseModel):
                 )
         return v
 
-    @field_validator("max_duration", "max_depth", "max_children")
+    @field_validator("max_duration", "max_depth", "max_children", "thread_per_host", "hosts_per_scan")
     @classmethod
     def validate_positive(cls, v: int) -> int:
         """Validate that numeric values are positive."""

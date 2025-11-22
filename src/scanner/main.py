@@ -116,6 +116,18 @@ Examples:
         help="Maximum children per node (default: 20)",
     )
     scan_group.add_argument(
+        "--thread-per-host",
+        type=int,
+        default=10,
+        help="Number of threads per host for active scanning (default: 10)",
+    )
+    scan_group.add_argument(
+        "--hosts-per-scan",
+        type=int,
+        default=5,
+        help="Number of hosts to scan in parallel (default: 5)",
+    )
+    scan_group.add_argument(
         "--network",
         dest="network_name",
         help="Docker network name (auto-detected from target URL if not specified)",

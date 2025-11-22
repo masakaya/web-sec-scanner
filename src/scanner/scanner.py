@@ -289,8 +289,8 @@ def _create_automation_config(
     active_scan_params = {
         "policy": "Default Policy",
         "maxScanDurationInMins": config.max_duration,
-        "threadPerHost": 10,  # ホストごとのスレッド数（高速化）
-        "hostsPerScan": 5,    # 並列スキャンするホスト数（高速化）
+        "threadPerHost": config.thread_per_host,  # ホストごとのスレッド数（高速化）
+        "hostsPerScan": config.hosts_per_scan,    # 並列スキャンするホスト数（高速化）
     }
     if scan_presets and "active_scan_config" in scan_presets:
         active_scan_params.update(scan_presets["active_scan_config"])
@@ -504,8 +504,8 @@ def run_full_scan(config: ScanConfig) -> int:
         f"-config spider.maxDuration={config.max_duration}",
         f"-config spider.maxDepth={config.max_depth}",
         f"-config spider.maxChildren={config.max_children}",
-        "-config scanner.threadPerHost=10",  # ホストごとのスレッド数（高速化）
-        "-config scanner.hostsPerScan=5",    # 並列スキャンするホスト数（高速化）
+        f"-config scanner.threadPerHost={config.thread_per_host}",  # ホストごとのスレッド数（高速化）
+        f"-config scanner.hostsPerScan={config.hosts_per_scan}",    # 並列スキャンするホスト数（高速化）
     ]
 
     scan_cmd.extend(["-z", " ".join(scanner_opts)])
