@@ -177,7 +177,7 @@ prefect server start --host 0.0.0.0
 
 [tool.poe.tasks.prefect-example]
 help = "Run example Prefect flow"
-cmd = "python flows/example/example_flow.py"
+cmd = "python src/example/example_flow.py"
 
 [tool.poe.tasks.prefect-deploy]
 help = "Deploy Prefect flows"

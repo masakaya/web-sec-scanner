@@ -156,10 +156,10 @@ def log_example():
 
 ### サンプルフロー
 
-`flows/example_flow.py` にサンプルフローが用意されています：
+`src/example/example_flow.py` にサンプルフローが用意されています：
 
 ```python
-from flows.example_flow import example_workflow
+from src.example.example_flow import example_workflow
 
 # フローの実行
 result = example_workflow(
@@ -214,7 +214,7 @@ prefect flow-run ls
 ```yaml
 deployments:
   - name: example-deployment
-    entrypoint: flows/example_flow.py:example_workflow
+    entrypoint: src/example/example_flow.py:example_workflow
     schedule:
       cron: "0 9 * * *"  # 毎日9時に実行
     work_pool:
