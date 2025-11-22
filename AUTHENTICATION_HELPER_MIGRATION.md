@@ -12,7 +12,7 @@ This document summarizes the migration from custom authentication hook scripts t
 
 #### Added CLI Support for AddOns
 - **New CLI argument**: `--addon` (repeatable)
-- **Default AddOns**: `authhelper`, `ascanrules`, `bruteforce`
+- **Default AddOns**: `authhelper`, `ascanrules`, `bruteforce`, `spiderAjax`
 - **Example usage**:
   ```bash
   web-sec-scanner automation http://example.com --addon jwt --addon graphql
@@ -168,6 +168,11 @@ The scanner now installs these AddOns by default:
    - Password attack identification
    - Rate limiting detection
 
+4. **spiderAjax** - AJAX Spider
+   - JavaScript-heavy site crawling
+   - Modern web application support
+   - Required for `--ajax-spider` functionality
+
 Users can override or extend this list using `--addon`:
 ```bash
 # Add additional AddOns
@@ -243,12 +248,16 @@ Test updates required:
 6. **Added bruteforce**
    - Added Brute Force Detection to defaults
 
+7. **Added spiderAjax**
+   - Added AJAX Spider to defaults
+   - Ensures `--ajax-spider` functionality works consistently
+
 ### 10. Usage Examples
 
 #### Basic scan with defaults
 ```bash
 web-sec-scanner baseline http://example.com
-# Installs: authhelper, ascanrules, bruteforce
+# Installs: authhelper, ascanrules, bruteforce, spiderAjax
 ```
 
 #### Scan with custom AddOns
