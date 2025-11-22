@@ -73,8 +73,15 @@ class ScanConfig(BaseModel):
 
     # AddOn configuration
     addons: list[str] = Field(
-        default_factory=lambda: ["authhelper", "ascanrules", "bruteforce", "spiderAjax"],
-        description="ZAP AddOns to install (e.g., authhelper, ascanrules, bruteforce, spiderAjax, jwt, graphql, soap)",
+        default_factory=lambda: [
+            "authhelper",
+            "ascanrules",
+            "bruteforce",
+            "spiderAjax",
+            "sqliplugin",
+            "accessControl",
+        ],
+        description="ZAP AddOns to install (e.g., authhelper, ascanrules, bruteforce, spiderAjax, sqliplugin, accessControl, jwt, graphql, soap)",
     )
 
     # Output directory
