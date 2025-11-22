@@ -615,6 +615,9 @@ def _fix_json_encoding(report_dir: Path) -> None:
 def _create_auth_hook_script(config: ScanConfig, config_dir: Path) -> Path | None:
     """認証設定用のZAPフックスクリプトを生成する。
 
+    テンプレートファイル (resources/templates/zap_hooks_template.py) を読み込み、
+    設定値で置換してフックスクリプトを生成します。
+
     Args:
         config: スキャン設定
         config_dir: 設定ファイル保存先ディレクトリ
@@ -628,12 +631,21 @@ def _create_auth_hook_script(config: ScanConfig, config_dir: Path) -> Path | Non
 
     logger = get_run_logger()
 
+    # テンプレートファイルを読み込む
+    from utils import find_project_root
+    template_path = find_project_root() / "resources" / "templates" / "zap_hooks_template.py"
+
+    if not template_path.exists():
+        raise FileNotFoundError(f"Hook script template not found: {template_path}")
+
+    with open(template_path, "r", encoding="utf-8") as f:
+        template = f.read()
+
     # ベースURLを取得
     parsed_url = urlparse(config.target_url)
     base_url = f"{parsed_url.scheme}://{parsed_url.netloc}"
 
     # URL エンコードされたログインリクエストデータを生成
-    # 例: username={%username%}&password={%password%} -> username%3D%7B%25username%25%7D%26password%3D%7B%25password%25%7D
     import urllib.parse
     login_data = f"{config.username_field}={{%username%}}&{config.password_field}={{%password%}}"
     encoded_login_data = urllib.parse.quote(login_data, safe='')
@@ -642,113 +654,20 @@ def _create_auth_hook_script(config: ScanConfig, config_dir: Path) -> Path | Non
     logged_in_regex = f"\\\\Q{config.logged_in_indicator}\\\\E" if config.logged_in_indicator else ""
     logged_out_regex = f"\\\\Q{config.logged_out_indicator}\\\\E" if config.logged_out_indicator else ""
 
-    # ZAPフックスクリプト（Python）
-    hook_script = f'''"""ZAP authentication hook script."""
-
-def zap_tuned(zap):
-    """ZAPチューニング後に認証を設定する。
-
-    Args:
-        zap: ZAPv2 APIインスタンス
-    """
-    print("Setting up authentication via ZAP API...")
-
-    # コンテキストを作成
-    context_name = "scan-context"
-    context_id = zap.context.new_context(context_name)
-    print(f"Created context: {{context_name}} (ID: {{context_id}})")
-
-    # コンテキストにターゲットURLを追加
-    zap.context.include_in_context(context_name, "{base_url}/.*")
-    print(f"Added URL pattern to context: {base_url}/.*")
-
-    # Form-based認証を設定
-    auth_method = "formBasedAuthentication"
-    auth_params = (
-        f"loginUrl={config.login_url}&"
-        f"loginRequestData={encoded_login_data}"
+    # テンプレートのプレースホルダーを置換
+    hook_script = template.format(
+        base_url_pattern=f"{base_url}/.*",
+        login_url=config.login_url or "",
+        login_data_encoded=encoded_login_data,
+        logged_in_indicator=config.logged_in_indicator or "",
+        logged_in_indicator_regex=logged_in_regex,
+        logged_out_indicator=config.logged_out_indicator or "",
+        logged_out_indicator_regex=logged_out_regex,
+        username=config.username or "",
+        password=config.password or "",
+        username_field=config.username_field,
+        password_field=config.password_field,
     )
-
-    zap.authentication.set_authentication_method(
-        contextid=context_id,
-        authmethodname=auth_method,
-        authmethodconfigparams=auth_params
-    )
-    print(f"Set authentication method: {{auth_method}}")
-
-    # ログイン判定の設定
-    if "{logged_in_regex}":
-        zap.authentication.set_logged_in_indicator(
-            contextid=context_id,
-            loggedinindicatorregex="{logged_in_regex}"
-        )
-        print(f"Set logged-in indicator: {config.logged_in_indicator}")
-
-    if "{logged_out_regex}":
-        zap.authentication.set_logged_out_indicator(
-            contextid=context_id,
-            loggedoutindicatorregex="{logged_out_regex}"
-        )
-        print(f"Set logged-out indicator: {config.logged_out_indicator}")
-
-    # ユーザーを作成
-    user_name = "{config.username}"
-    user_id = zap.users.new_user(context_id, user_name)
-    print(f"Created user: {{user_name}} (ID: {{user_id}})")
-
-    # ユーザーの認証情報を設定
-    credentials = f"{config.username_field}={config.username}&{config.password_field}={config.password}"
-    zap.users.set_authentication_credentials(
-        contextid=context_id,
-        userid=user_id,
-        authcredentialsconfigparams=credentials
-    )
-    print(f"Set authentication credentials for user: {{user_name}}")
-
-    # ユーザーを有効化
-    zap.users.set_user_enabled(context_id, user_id, True)
-    print(f"Enabled user: {{user_name}}")
-
-    # 強制ユーザーモードを有効化（このユーザーでスキャン）
-    zap.forcedUser.set_forced_user(context_id, user_id)
-    zap.forcedUser.set_forced_user_mode_enabled(True)
-    print(f"Enabled forced user mode for: {{user_name}}")
-
-    # スパイダーとアクティブスキャンでこのコンテキストを使用するように設定
-    zap.context.set_context_in_scope(context_name, True)
-    print(f"Set context in scope: {{context_name}}")
-
-    print("Authentication setup completed successfully!")
-'''
-
-    # zap_spiderフックも追加（スパイダーをユーザーとして実行）
-    hook_script += f'''
-
-def zap_spider(zap, target):
-    """スパイダーをユーザーとして実行する。
-
-    Args:
-        zap: ZAPv2 APIインスタンス
-        target: ターゲットURL
-    """
-    print("Overriding spider to use authenticated user...")
-
-    # コンテキストとユーザーIDを取得
-    context_id = "1"
-    user_id = "0"
-
-    # 認証済みユーザーとしてスパイダーを実行
-    scan_id = zap.spider.scan_as_user(context_id, user_id, target, recurse=True)
-    print(f"Started spider as user (scan ID: {{scan_id}})")
-
-    # スパイダーの完了を待つ
-    import time
-    while int(zap.spider.status(scan_id)) < 100:
-        print(f"Spider progress: {{zap.spider.status(scan_id)}}%")
-        time.sleep(5)
-
-    print("Spider completed as authenticated user")
-'''
 
     # フックスクリプトを保存
     hook_file = config_dir / "zap_hooks.py"
