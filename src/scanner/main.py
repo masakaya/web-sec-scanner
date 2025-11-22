@@ -128,6 +128,11 @@ Examples:
         default="ja_JP",
         help="Language for scanner interface and reports (default: ja_JP)",
     )
+    scan_group.add_argument(
+        "--config-file",
+        type=Path,
+        help="Path to scan configuration preset file (e.g., resources/config/fast-scan.json)",
+    )
 
     args = parser.parse_args()
     return args
@@ -168,6 +173,7 @@ def validate_scan_config(args: argparse.Namespace) -> ScanConfig:
         max_children=args.max_children,
         network_name=args.network_name,
         language=args.language,
+        config_file=args.config_file,
         report_dir=args.report_dir or Path.cwd() / "report",
     )
 

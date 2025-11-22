@@ -6,6 +6,7 @@
 # ruff: noqa: D400, D415, S603, S607
 
 from datetime import datetime
+import json
 from pathlib import Path
 import subprocess
 
@@ -35,11 +36,43 @@ def setup_directories(config: ScanConfig) -> None:
     logger.info(f"Config directory created: {config_dir}")
 
 
-def _create_automation_config(config: ScanConfig) -> Path:
+def load_scan_presets(config_file: Path) -> dict:
+    """設定プリセットファイルを読み込む。
+
+    Args:
+        config_file: 設定ファイルのパス
+
+    Returns:
+        設定プリセットの辞書
+
+    Raises:
+        FileNotFoundError: 設定ファイルが存在しない場合
+        json.JSONDecodeError: JSONファイルの形式が不正な場合
+
+    """
+    logger = get_run_logger()
+
+    if not config_file.exists():
+        msg = f"Configuration file not found: {config_file}"
+        raise FileNotFoundError(msg)
+
+    logger.info(f"Loading scan presets from: {config_file}")
+
+    with open(config_file) as f:
+        presets = json.load(f)
+
+    logger.info("✓ Scan presets loaded successfully")
+    return presets
+
+
+def _create_automation_config(
+    config: ScanConfig, scan_presets: dict | None = None
+) -> Path:
     """Automation Framework用のYAML設定ファイルを作成する。
 
     Args:
         config: スキャン設定
+        scan_presets: 設定プリセット（オプション）
 
     Returns:
         作成された設定ファイルのパス
@@ -106,50 +139,66 @@ def _create_automation_config(config: ScanConfig) -> Path:
             "parameters": {},
         }
 
-    # Spiderジョブ
+    # Spiderジョブ（プリセット設定があればマージ）
+    spider_params = {
+        "maxDuration": config.max_duration,
+        "maxDepth": config.max_depth,
+        "maxChildren": config.max_children,
+    }
+    if scan_presets and "spider_config" in scan_presets:
+        spider_params.update(scan_presets["spider_config"])
+
     automation_config["jobs"].append(
         {
             "type": "spider",
-            "parameters": {
-                "maxDuration": config.max_duration,
-                "maxDepth": config.max_depth,
-                "maxChildren": config.max_children,
-            },
+            "parameters": spider_params,
         }
     )
 
-    # AJAX Spiderジョブ（有効な場合）
+    # AJAX Spiderジョブ（有効な場合、プリセット設定があればマージ）
     if config.ajax_spider:
+        ajax_spider_params = {
+            "maxDuration": config.max_duration,
+            "maxCrawlDepth": config.max_depth,
+            "numberOfBrowsers": 2,
+        }
+        if scan_presets and "ajax_spider_config" in scan_presets:
+            ajax_spider_params.update(scan_presets["ajax_spider_config"])
+
         automation_config["jobs"].append(
             {
                 "type": "spiderAjax",
-                "parameters": {
-                    "maxDuration": config.max_duration,
-                    "maxCrawlDepth": config.max_depth,
-                    "numberOfBrowsers": 2,
-                },
+                "parameters": ajax_spider_params,
             }
         )
 
-    # Passive Scan待機
+    # Passive Scan待機（プリセット設定があればマージ）
+    passive_scan_wait_params = {"maxDuration": 5}
+    if scan_presets and "passive_scan_config" in scan_presets:
+        passive_scan_wait_params.update(scan_presets["passive_scan_config"])
+
     automation_config["jobs"].append(
-        {"type": "passiveScan-wait", "parameters": {"maxDuration": 5}}
+        {"type": "passiveScan-wait", "parameters": passive_scan_wait_params}
     )
 
-    # Active Scan
+    # Active Scan（プリセット設定があればマージ）
+    active_scan_params = {
+        "policy": "Default Policy",
+        "maxScanDurationInMins": config.max_duration,
+    }
+    if scan_presets and "active_scan_config" in scan_presets:
+        active_scan_params.update(scan_presets["active_scan_config"])
+
     automation_config["jobs"].append(
         {
             "type": "activeScan",
-            "parameters": {
-                "policy": "Default Policy",
-                "maxScanDurationInMins": config.max_duration,
-            },
+            "parameters": active_scan_params,
         }
     )
 
     # 最終Passive Scan待機
     automation_config["jobs"].append(
-        {"type": "passiveScan-wait", "parameters": {"maxDuration": 5}}
+        {"type": "passiveScan-wait", "parameters": passive_scan_wait_params}
     )
 
     # レポート生成
@@ -377,8 +426,13 @@ def run_automation_scan(config: ScanConfig) -> int:
     logger = get_run_logger()
     logger.info("Running Automation Framework...")
 
+    # 設定プリセットを読み込み
+    scan_presets = None
+    if config.config_file:
+        scan_presets = load_scan_presets(config.config_file)
+
     # Automation設定ファイルを作成
-    _ = _create_automation_config(config)
+    _ = _create_automation_config(config, scan_presets)
 
     scan_cmd = [
         "zap.sh",

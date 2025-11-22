@@ -50,6 +50,9 @@ class ScanConfig(BaseModel):
     max_children: int = Field(20, description="Maximum children per node", gt=0)
     network_name: str | None = Field(None, description="Docker network name")
     language: str = Field("ja_JP", description="Language for scanner (default: ja_JP)")
+    config_file: Path | None = Field(
+        None, description="Path to scan configuration preset file"
+    )
 
     # Output directory
     report_dir: Path = Field(
