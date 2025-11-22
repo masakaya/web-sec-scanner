@@ -4,7 +4,9 @@ version = "0.2.1"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "prefect>=3.6.4",
+]
 
 [dependency-groups]
 dev = [
@@ -156,6 +158,21 @@ help = "Run tests with verbose output"
 cmd = "pytest -v"
 
 # ----------------------------------------
+# Prefect
+# ----------------------------------------
+[tool.poe.tasks.prefect-server]
+help = "Start Prefect server"
+cmd = "prefect server start"
+
+[tool.poe.tasks.prefect-flow]
+help = "Run example Prefect flow"
+cmd = "python flows/example_flow.py"
+
+[tool.poe.tasks.prefect-deploy]
+help = "Deploy Prefect flows"
+cmd = "prefect deploy --all"
+
+# ----------------------------------------
 # WebGoat (Docker Compose)
 # ----------------------------------------
 [tool.poe.tasks.webgoat-start]
@@ -250,5 +267,6 @@ exclude = [
 module = [
     "pytest.*",
     "pastel.*",
+    "prefect.*",
 ]
 ignore_missing_imports = true

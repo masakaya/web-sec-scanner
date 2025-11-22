@@ -21,6 +21,7 @@ Modern Python プロジェクトテンプレート - 高速パッケージマネ
 - ✅ **静的型チェック**: mypy による型安全性の保証
 - ✅ **自動テスト**: pytest + カバレッジレポート
 - ✅ **タスクランナー**: Poe the Poet による統一されたコマンド
+- ✅ **ワークフローオーケストレーション**: Prefect によるタスク管理と監視
 - ✅ **テスト環境**: WebGoat によるセキュリティテスト環境
 - ✅ **コミットメッセージ強制**: gitlint による Conventional Commits 検証
 - ✅ **自動バージョニング**: release-please による自動リリース管理
@@ -171,6 +172,7 @@ git commit --no-verify -m "message"
 | **Ruff** | Linting & Formatting | [docs/RUFF.md](docs/RUFF.md) |
 | **mypy** | 静的型チェック | [docs/MYPY.md](docs/MYPY.md) |
 | **pytest** | テスティング | [docs/TESTING.md](docs/TESTING.md) |
+| **Prefect** | ワークフローオーケストレーション | [docs/PREFECT.md](docs/PREFECT.md) |
 | **WebGoat** | セキュリティテスト環境 | [docs/WEBGOAT.md](docs/WEBGOAT.md) |
 | **Renovate** | 依存関係自動更新 | [docs/RENOVATE.md](docs/RENOVATE.md) |
 
@@ -183,11 +185,13 @@ git commit --no-verify -m "message"
 poe
 
 # よく使うコマンド
-poe lint         # Ruff linting
-poe format       # コードフォーマット
-poe typecheck    # 型チェック
-poe test         # テスト実行
+poe lint           # Ruff linting
+poe format         # コードフォーマット
+poe typecheck      # 型チェック
+poe test           # テスト実行
 poe check          # 全チェック実行
+poe prefect-server # Prefectサーバー起動
+poe prefect-flow   # Prefectフロー実行
 poe webgoat-start  # WebGoat起動
 poe webgoat-stop   # WebGoat停止
 ```
@@ -221,6 +225,14 @@ poe webgoat-stop   # WebGoat停止
 - テスト実行方法
 - カバレッジレポート
 - マーカーの使い方
+- ベストプラクティス
+
+### Prefect（ワークフローオーケストレーション）
+**[docs/PREFECT.md](docs/PREFECT.md)**
+- Prefectの基本的な使い方
+- フローとタスクの定義
+- スケジュール実行
+- ダッシュボードの使い方
 - ベストプラクティス
 
 ### WebGoat（セキュリティテスト環境）
@@ -395,6 +407,11 @@ poe typecheck-review  # reviewdogで確認
 poe test              # テスト実行
 poe test-cov          # カバレッジ付き
 poe test-verbose      # 詳細出力
+
+# Prefect
+poe prefect-server    # Prefectサーバー起動
+poe prefect-flow      # サンプルフロー実行
+poe prefect-deploy    # フローデプロイ
 
 # WebGoat
 poe webgoat-start     # WebGoat起動
