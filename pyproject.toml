@@ -1,0 +1,235 @@
+[project]
+name = "python-uv-project"
+version = "0.2.1"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "gitlint>=0.19.1",
+    "mypy>=1.18.2",
+    "poethepoet>=0.37.0",
+    "pre-commit>=4.4.0",
+    "pytest>=9.0.1",
+    "pytest-cov>=7.0.0",
+    "ruff>=0.14.5",
+]
+
+# ========================================
+# Poe the Poet - タスクランナー設定
+# ========================================
+
+# ----------------------------------------
+# コードチェック
+# ----------------------------------------
+[tool.poe.tasks.lint]
+help = "Run ruff linter"
+cmd = "ruff check ."
+
+[tool.poe.tasks.lint-fix]
+help = "Auto-fix linting issues"
+cmd = "ruff check --fix ."
+
+[tool.poe.tasks.lint-unsafe]
+help = "Auto-fix with unsafe fixes"
+cmd = "ruff check --fix --unsafe-fixes ."
+
+# ----------------------------------------
+# フォーマット
+# ----------------------------------------
+[tool.poe.tasks.format]
+help = "Format code with ruff"
+cmd = "ruff format ."
+
+[tool.poe.tasks.format-check]
+help = "Check code formatting"
+cmd = "ruff format --check ."
+
+# ----------------------------------------
+# 型チェック
+# ----------------------------------------
+[tool.poe.tasks.typecheck]
+help = "Run mypy type checker (accepts file paths as arguments)"
+cmd = "mypy ${paths}"
+
+[[tool.poe.tasks.typecheck.args]]
+name = "paths"
+positional = true
+multiple = true
+default = "."
+
+[tool.poe.tasks.typecheck-strict]
+help = "Run mypy with strict mode"
+cmd = "mypy --strict ${paths}"
+
+[[tool.poe.tasks.typecheck-strict.args]]
+name = "paths"
+positional = true
+multiple = true
+default = "."
+
+[tool.poe.tasks.typecheck-review]
+help = "Run mypy with reviewdog locally"
+shell = "./.github/scripts/mypy-review.sh"
+
+# ----------------------------------------
+# レビュー
+# ----------------------------------------
+[tool.poe.tasks.review-local]
+help = "Run Ruff with reviewdog locally"
+shell = "./.github/scripts/ruff-review.sh"
+
+# ----------------------------------------
+# 統合タスク
+# ----------------------------------------
+[tool.poe.tasks.check]
+help = "Run all checks (lint + format + typecheck + test)"
+sequence = ["lint", "format-check", "typecheck", "test"]
+
+[tool.poe.tasks.fix]
+help = "Auto-fix all issues (lint + format)"
+sequence = ["lint-fix", "format"]
+
+[tool.poe.tasks.ci]
+help = "Run CI checks"
+sequence = ["lint", "format-check", "typecheck", "test-cov"]
+
+# ----------------------------------------
+# クリーンアップ
+# ----------------------------------------
+[tool.poe.tasks.clean]
+help = "Clean up generated files and caches"
+shell = """
+rm -rf .ruff_cache .mypy_cache
+rm -rf __pycache__
+rm -rf .pytest_cache
+find . -type d -name '__pycache__' -exec rm -rf {} + 2>/dev/null || true
+find . -type f -name '*.pyc' -delete 2>/dev/null || true
+echo '🧹 Cleaned!'
+"""
+
+# ----------------------------------------
+# 開発ツール
+# ----------------------------------------
+[tool.poe.tasks.install]
+help = "Install all dependencies"
+cmd = "uv sync --all-groups"
+
+[tool.poe.tasks.update]
+help = "Update dependencies"
+cmd = "uv lock --upgrade"
+
+# ----------------------------------------
+# Git hooks
+# ----------------------------------------
+[tool.poe.tasks.setup-hooks]
+help = "Install pre-commit git hooks"
+cmd = "pre-commit install --hook-type commit-msg"
+
+[tool.poe.tasks.uninstall-hooks]
+help = "Uninstall pre-commit git hooks"
+cmd = "pre-commit uninstall --hook-type commit-msg"
+
+[tool.poe.tasks.validate-commit]
+help = "Validate last commit message"
+shell = "gitlint --msg-filename <(git log -1 --pretty=%B)"
+
+# ----------------------------------------
+# テスト
+# ----------------------------------------
+[tool.poe.tasks.test]
+help = "Run tests with pytest"
+cmd = "pytest"
+
+[tool.poe.tasks.test-cov]
+help = "Run tests with coverage report"
+cmd = "pytest --cov=. --cov-report=term-missing --cov-report=html"
+
+[tool.poe.tasks.test-watch]
+help = "Run tests in watch mode"
+cmd = "pytest -f"
+
+[tool.poe.tasks.test-verbose]
+help = "Run tests with verbose output"
+cmd = "pytest -v"
+
+# ========================================
+# pytest設定
+# ========================================
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-ra",                    # show summary of all test outcomes
+    "--strict-markers",       # error on unknown markers
+    "--strict-config",        # error on unknown config options
+    "--showlocals",           # show local variables in tracebacks
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+]
+
+# ========================================
+# カバレッジ設定
+# ========================================
+[tool.coverage.run]
+source = ["."]
+omit = [
+    "*/tests/*",
+    "*/test_*.py",
+    "*/__pycache__/*",
+    "*/site-packages/*",
+    ".venv/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "@abstractmethod",
+]
+
+# ========================================
+# mypy設定
+# ========================================
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false  # プロジェクト初期は緩く設定
+disallow_any_unimported = false
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+check_untyped_defs = true
+strict_equality = true
+
+# 段階的に型を導入する場合
+disallow_untyped_calls = false
+disallow_incomplete_defs = false
+
+# 除外パス
+exclude = [
+    "^.venv/",
+    "^build/",
+    "^dist/",
+]
+
+# サードパーティライブラリの型スタブがない場合
+[[tool.mypy.overrides]]
+module = [
+    "pytest.*",
+    "pastel.*",
+]
+ignore_missing_imports = true

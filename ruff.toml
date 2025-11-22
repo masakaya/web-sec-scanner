@@ -1,0 +1,94 @@
+# 一般的に無視されるディレクトリを除外します。
+exclude = [
+    ".bzr",               # Bazaarリポジトリ
+    ".direnv",            # direnvの環境ディレクトリ
+    ".eggs",              # Pythonパッケージのビルドディレクトリ
+    ".git",               # Gitリポジトリ
+    ".git-rewrite",       # Gitの書き換え履歴
+    ".hg",                # Mercurialリポジトリ
+    ".ipynb_checkpoints", # Jupyter notebookのチェックポイント
+    ".mypy_cache",        # mypyのキャッシュディレクトリ
+    ".nox",               # noxの環境ディレクトリ
+    ".pants.d",           # Pantsビルドシステムのディレクトリ
+    ".pyenv",             # pyenvの環境ディレクトリ
+    ".pytest_cache",      # pytestのキャッシュディレクトリ
+    ".pytype",            # Pytypeのタイプキャッシュ
+    ".ruff_cache",        # Ruffのキャッシュディレクトリ
+    ".svn",               # Subversionリポジトリ
+    ".tox",               # toxの仮想環境ディレクトリ
+    ".venv",              # Python仮想環境ディレクトリ
+    ".vscode",            # VSCodeの設定ディレクトリ
+    "__pypackages__",     # PEP582準拠のパッケージディレクトリ
+    "_build",             # ビルド成果物ディレクトリ
+    "buck-out",           # Buckビルドシステムの成果物ディレクトリ
+    "build",              # ビルドディレクトリ
+    "dist",               # 配布物ディレクトリ
+    "node_modules",       # Node.jsの依存パッケージ
+    "site-packages",      # Pythonの依存パッケージ
+    "venv",               # 仮想環境ディレクトリの別名
+]
+
+# Blackと同じ設定で、1行の長さを88文字に設定
+line-length = 88
+# インデントの幅を4スペースに設定
+indent-width = 4
+
+# ターゲットとするPythonバージョン（構文チェックの基準）
+target-version = "py312"
+
+[lint]
+# 有効にするルールセット
+# E: pycodestyle errors（PEP 8エラー）
+# F: Pyflakes（未使用インポート、変数など）
+# I: isort（インポート文の整理）
+# N: pep8-naming（命名規則）
+# W: pycodestyle warnings（PEP 8警告）
+# UP: pyupgrade（新しいPython構文への更新）
+# B: flake8-bugbear（バグの可能性がある箇所）
+# C4: flake8-comprehensions（リスト内包表記の最適化）
+# SIM: flake8-simplify（コードの簡略化）
+# S: flake8-bandit（セキュリティチェック）
+# D: pydocstyle（docstringスタイル）
+select = ["E", "F", "I", "N", "W", "UP", "B", "C4", "SIM", "S", "D"]
+
+# 無視するルール（プロジェクトに合わせてカスタマイズ）
+ignore = [
+    "E501",  # 行の長さ制限（line-lengthで管理するため無視）
+]
+
+# 自動修正可能なルールを指定（`ruff check --fix`で修正可能）
+fixable = ["ALL"]
+# 自動修正しないルール
+unfixable = []
+
+# ファイル別の無視設定
+[lint.per-file-ignores]
+# テストファイルでは特定のルールを無視
+"tests/**/*.py" = [
+    "S101",  # assertの使用を許可
+    "D",     # docstringを強制しない
+]
+# 設定ファイルや初期化ファイルで未使用インポートを許可
+"__init__.py" = ["F401"]
+
+# インポート文の整理ルール（isort互換）
+[lint.isort]
+# インポートをアルファベット順にソート
+force-sort-within-sections = true
+# サードパーティライブラリとして扱うパッケージ
+known-third-party = []
+
+# 循環的複雑度の上限（関数の複雑さの指標）
+[lint.mccabe]
+max-complexity = 10
+
+# フォーマッタの設定
+[format]
+# 文字列に使用する引用符（"double" or "single"）
+quote-style = "double"
+# インデントスタイル（"space" or "tab"）
+indent-style = "space"
+# マジックトレイリングカンマを使用（複数行の末尾にカンマを自動追加）
+skip-magic-trailing-comma = false
+# 行末の処理（"auto", "lf", "crlf"）
+line-ending = "auto"
