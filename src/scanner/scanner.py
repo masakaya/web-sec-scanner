@@ -349,6 +349,14 @@ def _build_docker_command(config: ScanConfig, scan_command: list) -> list:
     uid = subprocess.check_output(["id", "-u"]).decode().strip()
     gid = subprocess.check_output(["id", "-g"]).decode().strip()
 
+    # スキャンタイプに応じてマウントパスを決定
+    # baseline/full/apiスキャンは /zap/wrk を使用
+    # automationスキャンは /scanner/wrk を使用
+    if scan_command[0] in ["zap-baseline.py", "zap-full-scan.py", "zap-api-scan.py"]:
+        mount_path = "/zap/wrk"
+    else:
+        mount_path = "/scanner/wrk"
+
     cmd = [
         "docker",
         "run",
@@ -356,7 +364,7 @@ def _build_docker_command(config: ScanConfig, scan_command: list) -> list:
         "--user",
         f"{uid}:{gid}",
         "-v",
-        f"{config.report_dir.absolute()}:/scanner/wrk:rw",
+        f"{config.report_dir.absolute()}:{mount_path}:rw",
     ]
 
     # Dockerネットワーク指定（自動検出または手動指定）
