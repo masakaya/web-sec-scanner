@@ -97,18 +97,6 @@ WebGoat環境は、セキュリティ診断レポート出力ツールの開発�
 3. **レポート形式のテスト**: 様々なレポート形式（HTML, JSON, XMLなど）の出力テスト
 4. **サンプルレポート作成**: ドキュメント用のサンプルレポートを生成
 
-### セキュリティ診断ツールとの連携例（今後実装予定）
-
-```python
-# 将来的な実装例
-from scanner import SecurityScanner
-
-scanner = SecurityScanner(target="http://localhost:8080/WebGoat")
-results = scanner.scan()
-report = scanner.generate_report(format="html")
-report.save("webgoat_scan_report.html")
-```
-
 ---
 
 ## ⚠️ 重要な注意事項
