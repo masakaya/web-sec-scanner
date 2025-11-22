@@ -21,6 +21,7 @@ Modern Python プロジェクトテンプレート - 高速パッケージマネ
 - ✅ **静的型チェック**: mypy による型安全性の保証
 - ✅ **自動テスト**: pytest + カバレッジレポート
 - ✅ **タスクランナー**: Poe the Poet による統一されたコマンド
+- ✅ **テスト環境**: WebGoat によるセキュリティテスト環境
 - ✅ **コミットメッセージ強制**: gitlint による Conventional Commits 検証
 - ✅ **自動バージョニング**: release-please による自動リリース管理
 - ✅ **ブランチ自動プロモーション**: main → staging → production の自動PR作成
@@ -37,6 +38,7 @@ Modern Python プロジェクトテンプレート - 高速パッケージマネ
 
 - Python 3.12+
 - [uv](https://github.com/astral-sh/uv) がインストール済み
+- Docker & Docker Compose（WebGoatテスト環境用）
 
 ### セットアップ
 
@@ -51,8 +53,29 @@ uv sync --all-groups
 # Git hooks をインストール（コミットメッセージ検証用）
 poe setup-hooks
 
+# WebGoatテスト環境を起動（オプション）
+poe webgoat-start
+
 # 開発準備完了！
 ```
+
+### WebGoatテスト環境（オプション）
+
+セキュリティスキャナーのテスト用に、WebGoat環境を起動できます：
+
+```bash
+# WebGoat起動
+poe webgoat-start
+
+# アクセス
+# WebGoat: http://localhost:8080/WebGoat
+# WebWolf: http://localhost:9090/WebWolf
+
+# WebGoat停止
+poe webgoat-stop
+```
+
+詳細は [docs/WEBGOAT.md](docs/WEBGOAT.md) を参照してください。
 
 ---
 
@@ -148,6 +171,7 @@ git commit --no-verify -m "message"
 | **Ruff** | Linting & Formatting | [docs/RUFF.md](docs/RUFF.md) |
 | **mypy** | 静的型チェック | [docs/MYPY.md](docs/MYPY.md) |
 | **pytest** | テスティング | [docs/TESTING.md](docs/TESTING.md) |
+| **WebGoat** | セキュリティテスト環境 | [docs/WEBGOAT.md](docs/WEBGOAT.md) |
 | **Renovate** | 依存関係自動更新 | [docs/RENOVATE.md](docs/RENOVATE.md) |
 
 ### タスク管理
@@ -163,7 +187,9 @@ poe lint         # Ruff linting
 poe format       # コードフォーマット
 poe typecheck    # 型チェック
 poe test         # テスト実行
-poe check        # 全チェック実行
+poe check          # 全チェック実行
+poe webgoat-start  # WebGoat起動
+poe webgoat-stop   # WebGoat停止
 ```
 
 ---
@@ -196,6 +222,14 @@ poe check        # 全チェック実行
 - カバレッジレポート
 - マーカーの使い方
 - ベストプラクティス
+
+### WebGoat（セキュリティテスト環境）
+**[docs/WEBGOAT.md](docs/WEBGOAT.md)**
+- WebGoatの基本的な使い方
+- テスト環境の起動・停止
+- セキュリティ脆弱性の学習
+- スキャナーのテスト方法
+- セキュリティ上の注意事項
 
 ---
 
@@ -361,6 +395,12 @@ poe typecheck-review  # reviewdogで確認
 poe test              # テスト実行
 poe test-cov          # カバレッジ付き
 poe test-verbose      # 詳細出力
+
+# WebGoat
+poe webgoat-start     # WebGoat起動
+poe webgoat-stop      # WebGoat停止
+poe webgoat-logs      # WebGoatログ表示
+poe webgoat-restart   # WebGoat再起動
 
 # reviewdog（ローカル）
 poe review-local      # Ruff reviewdog
