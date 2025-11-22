@@ -42,7 +42,7 @@ class TestCreateTimestampedReportDir:
 
         assert report_subdir.exists()
         assert report_subdir.is_dir()
-        assert report_subdir.name.startswith("automation-")
+        assert report_subdir.name.startswith("fast-")
         assert len(timestamp) == 15  # YYYYMMDD_HHMMSS
 
     def test_directory_has_correct_permissions(self, scan_config, mock_logger):
@@ -53,10 +53,12 @@ class TestCreateTimestampedReportDir:
         assert oct(report_subdir.stat().st_mode & 0o777) == oct(0o777)
 
     def test_directory_name_includes_scan_type(self, scan_config, mock_logger):
-        """Test that directory name includes scan type."""
+        """Test that directory name includes scan type (automation -> fast)."""
         report_subdir, _ = _create_timestamped_report_dir(scan_config)
 
-        assert scan_config.scan_type in report_subdir.name
+        # automationスキャンはディレクトリ名に"fast"を使用
+        expected_prefix = "fast" if scan_config.scan_type == "automation" else scan_config.scan_type
+        assert expected_prefix in report_subdir.name
 
 
 class TestDetectDockerNetwork:

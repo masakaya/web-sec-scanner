@@ -32,7 +32,10 @@ def _create_timestamped_report_dir(config: ScanConfig) -> tuple[Path, str]:
 
     # タイムスタンプを生成
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    report_subdir = config.report_dir / f"{config.scan_type}-{timestamp}"
+
+    # ディレクトリ名のプレフィックスを決定（automationは"fast"に変更）
+    dir_prefix = "fast" if config.scan_type == "automation" else config.scan_type
+    report_subdir = config.report_dir / f"{dir_prefix}-{timestamp}"
 
     # ディレクトリを作成
     report_subdir.mkdir(parents=True, exist_ok=True)
