@@ -73,8 +73,8 @@ class ScanConfig(BaseModel):
 
     # AddOn configuration
     addons: list[str] = Field(
-        default_factory=lambda: ["authhelper"],
-        description="ZAP AddOns to install (e.g., authhelper, jwt, graphql, soap)",
+        default_factory=lambda: ["authhelper", "ascanrules"],
+        description="ZAP AddOns to install (e.g., authhelper, ascanrules, jwt, graphql, soap)",
     )
 
     # Output directory
