@@ -1,18 +1,19 @@
-# Python Project Template with uv
+# WebSecScanner
 
-[![Tests](https://github.com/masakaya/python-uv-project/actions/workflows/test.yml/badge.svg)](https://github.com/masakaya/python-uv-project/actions/workflows/test.yml)
-[![codecov](https://codecov.io/gh/masakaya/python-uv-project/branch/main/graph/badge.svg)](https://codecov.io/gh/masakaya/python-uv-project)
-[![Ruff](https://github.com/masakaya/python-uv-project/actions/workflows/ruff.yml/badge.svg)](https://github.com/masakaya/python-uv-project/actions/workflows/ruff.yml)
-[![mypy](https://github.com/masakaya/python-uv-project/actions/workflows/mypy.yml/badge.svg)](https://github.com/masakaya/python-uv-project/actions/workflows/mypy.yml)
+[![Tests](https://github.com/masakaya/web-sec-scanner/actions/workflows/test.yml/badge.svg)](https://github.com/masakaya/web-sec-scanner/actions/workflows/test.yml)
+[![codecov](https://codecov.io/gh/masakaya/web-sec-scanner/branch/main/graph/badge.svg)](https://codecov.io/gh/masakaya/web-sec-scanner)
+[![Ruff](https://github.com/masakaya/web-sec-scanner/actions/workflows/ruff.yml/badge.svg)](https://github.com/masakaya/web-sec-scanner/actions/workflows/ruff.yml)
+[![mypy](https://github.com/masakaya/web-sec-scanner/actions/workflows/mypy.yml/badge.svg)](https://github.com/masakaya/web-sec-scanner/actions/workflows/mypy.yml)
 [![Python](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 
-Modern Python プロジェクトテンプレート - 高速パッケージマネージャ `uv` とコード品質ツールの統合
+Modern Python Webセキュリティスキャナー - PrefectワークフローとWebGoatテスト環境を統合
 
-> **📊 カバレッジレポート**: [Codecov](https://codecov.io/gh/masakaya/python-uv-project) で確認できます。各 PR にも自動的にカバレッジレポートがコメントされます。
+> **📊 カバレッジレポート**: [Codecov](https://codecov.io/gh/masakaya/web-sec-scanner) で確認できます。各 PR にも自動的にカバレッジレポートがコメントされます。
 
 ## 📋 概要
 
-このテンプレートは、Pythonプロジェクトを素早く立ち上げるための最新のベストプラクティスを統合したものです。
+WebSecScannerは、Webアプリケーションのセキュリティ脆弱性を検出するための最新のPythonベーススキャナーです。
+Prefectによるワークフローオーケストレーションと、WebGoatによる実践的なテスト環境を統合しています。
 
 ### 主な特徴
 
@@ -45,8 +46,8 @@ Modern Python プロジェクトテンプレート - 高速パッケージマネ
 
 ```bash
 # リポジトリをクローン
-git clone <your-repo-url>
-cd python-uv-project
+git clone https://github.com/masakaya/web-sec-scanner.git
+cd web-sec-scanner
 
 # 依存関係をインストール
 uv sync --all-groups
