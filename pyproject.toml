@@ -161,8 +161,18 @@ cmd = "pytest -v"
 # Prefect
 # ----------------------------------------
 [tool.poe.tasks.prefect-server]
-help = "Start Prefect server"
-cmd = "prefect server start"
+help = "Start Prefect server (accessible from external hosts)"
+shell = """
+# 自動的にローカルIPアドレスを検出
+LOCAL_IP=$(hostname -I | awk '{print $1}' || echo "127.0.0.1")
+export PREFECT_UI_API_URL="${PREFECT_UI_API_URL:-http://$LOCAL_IP:4200/api}"
+echo "🚀 Starting Prefect server..."
+echo "📍 Local access:    http://127.0.0.1:4200"
+echo "🌐 External access: http://$LOCAL_IP:4200"
+echo "🔗 API URL:         $PREFECT_UI_API_URL"
+echo ""
+prefect server start --host 0.0.0.0
+"""
 
 [tool.poe.tasks.prefect-flow]
 help = "Run example Prefect flow"

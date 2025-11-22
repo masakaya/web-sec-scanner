@@ -22,16 +22,70 @@ Prefectは、Pythonでデータパイプラインやワークフローを構築�
 
 ```bash
 # Prefectサーバーを起動（別ターミナルで実行）
-poe prefect-server
+# IPアドレスは自動検出されます
+uv run poe prefect-server
 ```
 
-サーバーが起動したら、ブラウザで http://127.0.0.1:4200 にアクセスしてダッシュボードを確認できます。
+起動時に以下のような情報が表示されます:
+```
+🚀 Starting Prefect server...
+📍 Local access:    http://127.0.0.1:4200
+🌐 External access: http://192.168.1.14:4200
+🔗 API URL:         http://192.168.1.14:4200/api
+```
+
+> ⚠️ **セキュリティ注意**: `--host 0.0.0.0`で起動すると外部からアクセス可能になります。本番環境では適切なファイアウォール設定やアクセス制御を行ってください。
 
 ### サンプルフローの実行
 
 ```bash
 # サンプルフローを実行
-poe prefect-flow
+uv run poe prefect-flow
+```
+
+---
+
+## 🌐 外部からのアクセス設定
+
+### サーバー側の設定
+
+Prefectサーバーは `--host 0.0.0.0` オプションで起動することで、外部からアクセス可能になります。
+
+**IPアドレスは自動検出されます** - 通常は何も設定する必要がありません:
+
+```bash
+# これだけでOK！IPアドレスは自動検出されます
+uv run poe prefect-server
+```
+
+起動時に表示される外部アクセスURLをブラウザで開くだけです。
+
+#### 手動で設定する場合（オプション）
+
+特定のIPアドレスを使いたい場合は、環境変数を設定できます:
+
+```bash
+export PREFECT_UI_API_URL="http://192.168.1.14:4200/api"
+uv run poe prefect-server
+```
+
+### クライアント側の設定
+
+外部のPrefectサーバーに接続する場合、環境変数を設定します:
+
+```bash
+# Prefect APIのエンドポイントを設定
+export PREFECT_API_URL="http://<サーバーのIPアドレス>:4200/api"
+
+# 設定を確認
+prefect config view
+```
+
+または、プロジェクトごとに設定する場合:
+
+```bash
+# プロジェクトのAPIエンドポイントを設定
+prefect config set PREFECT_API_URL="http://<サーバーのIPアドレス>:4200/api"
 ```
 
 ---
@@ -121,14 +175,14 @@ result = example_workflow(
 ### Prefect関連タスク
 
 ```bash
-# Prefectサーバー起動
-poe prefect-server
+# Prefectサーバー起動（外部アクセス可能）
+uv run poe prefect-server
 
 # サンプルフロー実行
-poe prefect-flow
+uv run poe prefect-flow
 
 # フローのデプロイ
-poe prefect-deploy
+uv run poe prefect-deploy
 ```
 
 ### その他のPrefect CLIコマンド

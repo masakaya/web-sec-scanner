@@ -191,7 +191,7 @@ poe format         # コードフォーマット
 poe typecheck      # 型チェック
 poe test           # テスト実行
 poe check          # 全チェック実行
-poe prefect-server # Prefectサーバー起動
+poe prefect-server # Prefectサーバー起動（IP自動検出、外部アクセス可能）
 poe prefect-flow   # Prefectフロー実行
 poe webgoat-start  # WebGoat起動
 poe webgoat-stop   # WebGoat停止
@@ -410,7 +410,7 @@ poe test-cov          # カバレッジ付き
 poe test-verbose      # 詳細出力
 
 # Prefect
-poe prefect-server    # Prefectサーバー起動
+poe prefect-server    # Prefectサーバー起動（IP自動検出、外部アクセス可能）
 poe prefect-flow      # サンプルフロー実行
 poe prefect-deploy    # フローデプロイ
 
