@@ -209,25 +209,33 @@ def _create_automation_config(
         "jobs": [],
     }
 
-    # 認証設定の追加
-    if config.username:
+    # 認証設定の追加（Browser-based Authentication）
+    if config.username and config.auth_type != "bearer":
+        # Browser-based認証を使用（Authentication Helper AddOn）
         auth_config = {
+            "method": "browser",
             "parameters": {
-                "loginUrl": config.login_url,
-                "usernameField": config.username_field,
-                "passwordField": config.password_field,
-            }
+                "loginPageUrl": config.login_url,
+                "loginPageWait": 5,
+                "browserId": "firefox-headless",
+            },
         }
 
-        if config.logged_in_indicator:
-            auth_config["verification"] = {
-                "method": "response",
-                "loggedInRegex": config.logged_in_indicator,
-            }
+        # 検証方法（autodetect推奨）
+        if config.logged_in_indicator or config.logged_out_indicator:
+            verification_config: dict[str, Any] = {"method": "response"}
+            if config.logged_in_indicator:
+                verification_config["loggedInRegex"] = config.logged_in_indicator
             if config.logged_out_indicator:
-                auth_config["verification"]["loggedOutRegex"] = (
-                    config.logged_out_indicator
-                )
+                verification_config["loggedOutRegex"] = config.logged_out_indicator
+            automation_config["env"]["contexts"][0]["verification"] = (
+                verification_config
+            )
+        else:
+            # autodetectを使用
+            automation_config["env"]["contexts"][0]["verification"] = {
+                "method": "autodetect"
+            }
 
         automation_config["env"]["contexts"][0]["authentication"] = auth_config
         automation_config["env"]["contexts"][0]["users"] = [
@@ -239,8 +247,10 @@ def _create_automation_config(
                 },
             }
         ]
+
+        # セッション管理（autodetect推奨）
         automation_config["env"]["contexts"][0]["sessionManagement"] = {
-            "method": config.session_method,
+            "method": "autodetect",
             "parameters": {},
         }
 
@@ -390,20 +400,35 @@ def _build_docker_command(config: ScanConfig, scan_command: list) -> list:
     else:
         logger.info("No Docker network specified, using default networking")
 
-    # 設定ディレクトリのマウント（automation用およびフックスクリプト用）
+    # 設定ディレクトリのマウント（automation用）
     config_dir = config.report_dir.parent / "scanner-config"
     if config_dir.exists():
         cmd.extend(["-v", f"{config_dir.absolute()}:/scanner/config:ro"])
-        # フックスクリプトが存在する場合は環境変数で指定
-        hook_file = config_dir / "zap_hooks.py"
-        if hook_file.exists():
-            cmd.extend(["-e", "ZAP_HOOKS=/scanner/config/zap_hooks.py"])
 
     # 言語設定
     cmd.extend(["-e", f"LC_ALL={config.language}.UTF-8"])
 
+    # Bearer認証の環境変数設定
+    if config.auth_type == "bearer" and config.auth_token:
+        token_prefix = (
+            config.token_prefix if config.token_prefix.lower() != "none" else ""
+        )
+        token_value = f"{token_prefix} {config.auth_token}".strip()
+        cmd.extend(["-e", f"ZAP_AUTH_HEADER_VALUE={token_value}"])
+        cmd.extend(["-e", f"ZAP_AUTH_HEADER={config.auth_header}"])
+        logger.info(
+            f"Using ZAP environment variable authentication: {config.auth_header}"
+        )
+
     # スキャナーイメージとコマンド
     cmd.append("ghcr.io/zaproxy/zaproxy:stable")
+
+    # AddOnのインストール
+    if config.addons:
+        for addon in config.addons:
+            cmd.extend(["-addoninstall", addon])
+        logger.info(f"Installing ZAP AddOns: {', '.join(config.addons)}")
+
     cmd.extend(scan_command)
 
     return cmd
@@ -473,12 +498,6 @@ def run_full_scan(config: ScanConfig) -> int:
     report_subdir, timestamp = _create_timestamped_report_dir(config)
     report_subdir_name = report_subdir.name
 
-    # 設定ディレクトリを取得
-    config_dir = config.report_dir.parent / "scanner-config"
-
-    # 認証フックスクリプトを作成
-    hook_script = _create_auth_hook_script(config, config_dir)
-
     scan_cmd = [
         "zap-full-scan.py",
         "-t",
@@ -497,10 +516,6 @@ def run_full_scan(config: ScanConfig) -> int:
         "-T",
         "120",
     ]
-
-    # 認証が有効な場合はログに記録
-    if hook_script:
-        logger.info(f"Using authentication hook script for user: {config.username}")
 
     if config.ajax_spider:
         scan_cmd.append("-j")
@@ -617,140 +632,6 @@ def _fix_json_encoding(report_dir: Path) -> None:
 
     except Exception as e:
         logger.warning(f"Failed to fix JSON encoding: {e}")
-
-
-def _create_auth_hook_script(config: ScanConfig, config_dir: Path) -> Path | None:
-    """認証設定用のZAPフックスクリプトを生成する。
-
-    テンプレートファイル (resources/templates/zap_hooks_template.py) を読み込み、
-    設定値で置換してフックスクリプトを生成します。
-
-    Args:
-        config: スキャン設定
-        config_dir: 設定ファイル保存先ディレクトリ
-
-    Returns:
-        生成したフックスクリプトのパス、認証なしの場合はNone
-
-    """
-    if config.auth_type == "none":
-        return None
-
-    logger = get_run_logger()
-
-    # テンプレートファイルを読み込む
-    from src.utils import find_project_root
-
-    template_path = (
-        find_project_root() / "resources" / "templates" / "zap_hooks_template.py"
-    )
-
-    if not template_path.exists():
-        raise FileNotFoundError(f"Hook script template not found: {template_path}")
-
-    with open(template_path, encoding="utf-8") as f:
-        template = f.read()
-
-    # ベースURLを取得
-    parsed_url = urlparse(config.target_url)
-    base_url = f"{parsed_url.scheme}://{parsed_url.netloc}"
-
-    # 認証タイプに応じてテンプレートのプレースホルダーを準備
-    if config.auth_type == "bearer":
-        # Bearer/JWT認証用のパラメータ
-        hook_script = template.format(
-            base_url_pattern=f"{base_url}/.*",
-            auth_token=config.auth_token or "",
-            auth_header=config.auth_header,
-            token_prefix=config.token_prefix,
-            # 未使用のプレースホルダーも空文字で埋める（テンプレートのエラー回避）
-            login_url="",
-            login_data_encoded="",
-            logged_in_indicator="",
-            logged_in_indicator_regex="",
-            logged_out_indicator="",
-            logged_out_indicator_regex="",
-            username="",
-            password="",
-            username_field="",
-            password_field="",
-            # テンプレート内の print文用のプレースホルダー
-            context_name="scan-context",
-            context_id="{context_id}",
-            user_name="{user_name}",
-            user_id="{user_id}",
-            scan_id="{scan_id}",
-            auth_method="{auth_method}",
-            e="{e}",
-            token_value="{token_value}",
-        )
-    else:
-        # Form/JSON/Basic認証用のパラメータ
-        import urllib.parse
-
-        login_data = f"{config.username_field}={{%username%}}&{config.password_field}={{%password%}}"
-        encoded_login_data = urllib.parse.quote(login_data, safe="")
-
-        # ログイン判定用の正規表現（\Qと\Eでリテラル文字列として扱う）
-        logged_in_regex = (
-            f"\\\\Q{config.logged_in_indicator}\\\\E"
-            if config.logged_in_indicator
-            else ""
-        )
-        logged_out_regex = (
-            f"\\\\Q{config.logged_out_indicator}\\\\E"
-            if config.logged_out_indicator
-            else ""
-        )
-
-        hook_script = template.format(
-            base_url_pattern=f"{base_url}/.*",
-            login_url=config.login_url or "",
-            login_data_encoded=encoded_login_data,
-            logged_in_indicator=config.logged_in_indicator or "",
-            logged_in_indicator_regex=logged_in_regex,
-            logged_out_indicator=config.logged_out_indicator or "",
-            logged_out_indicator_regex=logged_out_regex,
-            username=config.username or "",
-            password=config.password or "",
-            username_field=config.username_field,
-            password_field=config.password_field,
-            # Bearer認証用のプレースホルダーを空文字で埋める
-            auth_token="",
-            auth_header="",
-            token_prefix="",
-            # テンプレート内の print文用のプレースホルダー
-            context_name="scan-context",
-            context_id="{context_id}",
-            user_name="{user_name}",
-            user_id="{user_id}",
-            scan_id="{scan_id}",
-            auth_method="{auth_method}",
-            e="{e}",
-            token_value="{token_value}",
-        )
-
-    # Bearer認証の場合、zap_tuned関数をBearer版に置き換える
-    if config.auth_type == "bearer":
-        # zap_tuned_bearer関数の名前をzap_tunedに変更
-        hook_script = hook_script.replace(
-            "def zap_tuned_bearer(zap):", "def zap_tuned(zap):"
-        )
-        # 元のzap_tuned関数（form-based）を削除
-        import re
-
-        # 最初のzap_tuned関数定義から次の関数定義の直前までを削除
-        pattern = r"def zap_tuned\(zap\):.*?(?=\ndef zap_spider\(zap, target\):)"
-        hook_script = re.sub(pattern, "", hook_script, count=1, flags=re.DOTALL)
-
-    # フックスクリプトを保存
-    hook_file = config_dir / "zap_hooks.py"
-    with open(hook_file, "w", encoding="utf-8") as f:
-        f.write(hook_script)
-
-    logger.info(f"Authentication hook script created: {hook_file}")
-
-    return hook_file
 
 
 @task(name="run-automation-scan", description="Automationフレームワークスキャン実行")
