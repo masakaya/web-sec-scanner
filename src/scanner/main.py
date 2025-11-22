@@ -108,7 +108,9 @@ Examples:
         default=20,
         help="Maximum children per node (default: 20)",
     )
-    scan_group.add_argument("--network", dest="network_name", help="Docker network name")
+    scan_group.add_argument(
+        "--network", dest="network_name", help="Docker network name"
+    )
     scan_group.add_argument(
         "--report-dir",
         type=Path,
@@ -165,7 +167,10 @@ def validate_scan_config(args: argparse.Namespace) -> ScanConfig:
     return config
 
 
-@flow(name="check-security-scan-option", description="セキュリティスキャンオプションのチェックと検証")
+@flow(
+    name="check-security-scan-option",
+    description="セキュリティスキャンオプションのチェックと検証",
+)
 def check_security_scan_option() -> ScanConfig:
     """コマンドライン引数からセキュリティスキャンオプションをチェック・検証する。
 
@@ -229,12 +234,12 @@ if __name__ == "__main__":
         # セキュリティスキャンフローを実行
         result = security_scan_flow(config)
 
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print("Scan Result:")
-        print(f"{'='*60}")
+        print(f"{'=' * 60}")
         print(f"Status: {result['status']}")
         print(f"Message: {result['message']}")
-        print(f"{'='*60}\n")
+        print(f"{'=' * 60}\n")
 
         sys.exit(0)
 
