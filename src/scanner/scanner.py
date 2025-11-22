@@ -294,11 +294,13 @@ def _create_automation_config(
         active_scan_params.update(scan_presets["active_scan_config"])
 
     # CLI/config設定で上書き（高優先度）
-    active_scan_params.update({
-        "policy": active_scan_params.get("policy", "Default Policy"),
-        "maxScanDurationInMins": config.max_duration,
-        "threadPerHost": config.thread_per_host,  # ホストごとのスレッド数（高速化）
-    })
+    active_scan_params.update(
+        {
+            "policy": active_scan_params.get("policy", "Default Policy"),
+            "maxScanDurationInMins": config.max_duration,
+            "threadPerHost": config.thread_per_host,  # ホストごとのスレッド数（高速化）
+        }
+    )
 
     automation_config["jobs"].append(
         {
@@ -510,7 +512,7 @@ def run_full_scan(config: ScanConfig) -> int:
         f"-config spider.maxDepth={config.max_depth}",
         f"-config spider.maxChildren={config.max_children}",
         f"-config scanner.threadPerHost={config.thread_per_host}",  # ホストごとのスレッド数（高速化）
-        f"-config scanner.hostsPerScan={config.hosts_per_scan}",    # 並列スキャンするホスト数（高速化）
+        f"-config scanner.hostsPerScan={config.hosts_per_scan}",  # 並列スキャンするホスト数（高速化）
     ]
 
     scan_cmd.extend(["-z", " ".join(scanner_opts)])
@@ -638,7 +640,10 @@ def _create_auth_hook_script(config: ScanConfig, config_dir: Path) -> Path | Non
 
     # テンプレートファイルを読み込む
     from src.utils import find_project_root
-    template_path = find_project_root() / "resources" / "templates" / "zap_hooks_template.py"
+
+    template_path = (
+        find_project_root() / "resources" / "templates" / "zap_hooks_template.py"
+    )
 
     if not template_path.exists():
         raise FileNotFoundError(f"Hook script template not found: {template_path}")
@@ -682,12 +687,21 @@ def _create_auth_hook_script(config: ScanConfig, config_dir: Path) -> Path | Non
     else:
         # Form/JSON/Basic認証用のパラメータ
         import urllib.parse
+
         login_data = f"{config.username_field}={{%username%}}&{config.password_field}={{%password%}}"
-        encoded_login_data = urllib.parse.quote(login_data, safe='')
+        encoded_login_data = urllib.parse.quote(login_data, safe="")
 
         # ログイン判定用の正規表現（\Qと\Eでリテラル文字列として扱う）
-        logged_in_regex = f"\\\\Q{config.logged_in_indicator}\\\\E" if config.logged_in_indicator else ""
-        logged_out_regex = f"\\\\Q{config.logged_out_indicator}\\\\E" if config.logged_out_indicator else ""
+        logged_in_regex = (
+            f"\\\\Q{config.logged_in_indicator}\\\\E"
+            if config.logged_in_indicator
+            else ""
+        )
+        logged_out_regex = (
+            f"\\\\Q{config.logged_out_indicator}\\\\E"
+            if config.logged_out_indicator
+            else ""
+        )
 
         hook_script = template.format(
             base_url_pattern=f"{base_url}/.*",
@@ -719,12 +733,15 @@ def _create_auth_hook_script(config: ScanConfig, config_dir: Path) -> Path | Non
     # Bearer認証の場合、zap_tuned関数をBearer版に置き換える
     if config.auth_type == "bearer":
         # zap_tuned_bearer関数の名前をzap_tunedに変更
-        hook_script = hook_script.replace("def zap_tuned_bearer(zap):", "def zap_tuned(zap):")
+        hook_script = hook_script.replace(
+            "def zap_tuned_bearer(zap):", "def zap_tuned(zap):"
+        )
         # 元のzap_tuned関数（form-based）を削除
         import re
+
         # 最初のzap_tuned関数定義から次の関数定義の直前までを削除
-        pattern = r'def zap_tuned\(zap\):.*?(?=\ndef zap_spider\(zap, target\):)'
-        hook_script = re.sub(pattern, '', hook_script, count=1, flags=re.DOTALL)
+        pattern = r"def zap_tuned\(zap\):.*?(?=\ndef zap_spider\(zap, target\):)"
+        hook_script = re.sub(pattern, "", hook_script, count=1, flags=re.DOTALL)
 
     # フックスクリプトを保存
     hook_file = config_dir / "zap_hooks.py"

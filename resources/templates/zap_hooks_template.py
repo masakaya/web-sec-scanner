@@ -27,30 +27,25 @@ def zap_tuned(zap):
 
     # Form-based認証を設定
     auth_method = "formBasedAuthentication"
-    auth_params = (
-        f"loginUrl={login_url}&"
-        f"loginRequestData={login_data_encoded}"
-    )
+    auth_params = f"loginUrl={login_url}&loginRequestData={login_data_encoded}"
 
     zap.authentication.set_authentication_method(
         contextid=context_id,
         authmethodname=auth_method,
-        authmethodconfigparams=auth_params
+        authmethodconfigparams=auth_params,
     )
     print("Set authentication method: {auth_method}")
 
     # ログイン判定の設定
     if "{logged_in_indicator}":
         zap.authentication.set_logged_in_indicator(
-            contextid=context_id,
-            loggedinindicatorregex="{logged_in_indicator_regex}"
+            contextid=context_id, loggedinindicatorregex="{logged_in_indicator_regex}"
         )
         print(f"Set logged-in indicator: {logged_in_indicator}")
 
     if "{logged_out_indicator}":
         zap.authentication.set_logged_out_indicator(
-            contextid=context_id,
-            loggedoutindicatorregex="{logged_out_indicator_regex}"
+            contextid=context_id, loggedoutindicatorregex="{logged_out_indicator_regex}"
         )
         print(f"Set logged-out indicator: {logged_out_indicator}")
 
@@ -62,9 +57,7 @@ def zap_tuned(zap):
     # ユーザーの認証情報を設定
     credentials = f"{username_field}={username}&{password_field}={password}"
     zap.users.set_authentication_credentials(
-        contextid=context_id,
-        userid=user_id,
-        authcredentialsconfigparams=credentials
+        contextid=context_id, userid=user_id, authcredentialsconfigparams=credentials
     )
     print("Set authentication credentials for user: {user_name}")
 
@@ -104,6 +97,7 @@ def zap_spider(zap, target):
 
     # スパイダーの完了を待つ
     import time
+
     while int(zap.spider.status(scan_id)) < 100:
         print(f"Spider progress: {{zap.spider.status(scan_id)}}%")
         time.sleep(5)
@@ -140,7 +134,11 @@ def zap_tuned_bearer(zap):
         token_value = auth_token
 
     print(f"Token header: {{auth_header}}")
-    print(f"Token value: {{token_value[:20]}}..." if len(token_value) > 20 else f"Token value: {{token_value}}")
+    print(
+        f"Token value: {{token_value[:20]}}..."
+        if len(token_value) > 20
+        else f"Token value: {{token_value}}"
+    )
 
     # ZAP Replacer APIを使用してAuthorizationヘッダーを追加
     # すべてのリクエストにトークンヘッダーを追加
@@ -151,7 +149,7 @@ def zap_tuned_bearer(zap):
             matchtype="REQ_HEADER",
             matchstring=auth_header,
             matchregex=False,
-            replacement=token_value
+            replacement=token_value,
         )
         print("Added replacer rule for {auth_header} header")
     except Exception:
@@ -163,4 +161,3 @@ def zap_tuned_bearer(zap):
     print("Set context in scope: {context_name}")
 
     print("Bearer token authentication setup completed successfully!")
-

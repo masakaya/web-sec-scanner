@@ -94,16 +94,16 @@ class ScanConfig(BaseModel):
         """
         if self.auth_type == "bearer":
             if not self.auth_token:
-                raise ValueError(
-                    "auth_token is required when auth_type is 'bearer'"
-                )
+                raise ValueError("auth_token is required when auth_type is 'bearer'")
         elif self.auth_type != "none" and (not self.username or not self.password):
             raise ValueError(
                 f"username and password are required when auth_type is '{self.auth_type}'"
             )
         return self
 
-    @field_validator("max_duration", "max_depth", "max_children", "thread_per_host", "hosts_per_scan")
+    @field_validator(
+        "max_duration", "max_depth", "max_children", "thread_per_host", "hosts_per_scan"
+    )
     @classmethod
     def validate_positive(cls, v: int) -> int:
         """Validate that numeric values are positive."""
