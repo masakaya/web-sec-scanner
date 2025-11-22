@@ -1,7 +1,7 @@
 """Configuration models for security scanner."""
 
 from pathlib import Path
-from typing import Literal, Optional
+from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -20,18 +20,18 @@ class ScanConfig(BaseModel):
     target_url: str = Field(..., description="Target URL to scan")
 
     # Authentication options
-    username: Optional[str] = Field(None, description="Username for authentication")
-    password: Optional[str] = Field(None, description="Password for authentication")
+    username: str | None = Field(None, description="Username for authentication")
+    password: str | None = Field(None, description="Password for authentication")
     auth_type: Literal["none", "form", "json", "basic"] = Field(
         "none", description="Authentication type"
     )
-    login_url: Optional[str] = Field(None, description="Login endpoint URL")
+    login_url: str | None = Field(None, description="Login endpoint URL")
     username_field: str = Field("username", description="Username field name")
     password_field: str = Field("password", description="Password field name")
-    logged_in_indicator: Optional[str] = Field(
+    logged_in_indicator: str | None = Field(
         None, description="Regex to detect logged-in state"
     )
-    logged_out_indicator: Optional[str] = Field(
+    logged_out_indicator: str | None = Field(
         None, description="Regex to detect logged-out state"
     )
     session_method: Literal["cookie", "http"] = Field(
@@ -45,7 +45,7 @@ class ScanConfig(BaseModel):
     max_duration: int = Field(30, description="Maximum scan duration in minutes", gt=0)
     max_depth: int = Field(10, description="Maximum crawl depth", gt=0)
     max_children: int = Field(20, description="Maximum children per node", gt=0)
-    network_name: Optional[str] = Field(None, description="Docker network name")
+    network_name: str | None = Field(None, description="Docker network name")
 
     # Output directory
     report_dir: Path = Field(

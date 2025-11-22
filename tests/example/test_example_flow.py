@@ -1,6 +1,5 @@
 """サンプルフローのユニットテスト。"""
 
-import pytest
 
 from src.example.example_flow import example_workflow, greet, process_data
 

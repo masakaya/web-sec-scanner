@@ -1,9 +1,11 @@
 """ScanConfigモデルのユニットテスト。"""
 
+# ruff: noqa: S106, S105, S108
+
 from pathlib import Path
 
-import pytest
 from pydantic import ValidationError
+import pytest
 
 from src.scanner.config import ScanConfig
 

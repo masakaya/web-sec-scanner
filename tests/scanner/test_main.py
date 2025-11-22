@@ -1,10 +1,9 @@
 """メインスキャンフローのユニットテスト。"""
 
+# ruff: noqa: S106, S105, S108
+
 import argparse
 from pathlib import Path
-from unittest.mock import MagicMock, patch
-
-import pytest
 
 from src.scanner.config import ScanConfig
 from src.scanner.main import security_scan_flow, validate_scan_config

@@ -1,13 +1,12 @@
-"""メインセキュリティスキャンフロー。
+"""メインセキュリティスキャンフロー。.
 
 このモジュールはWebアプリケーションに対してセキュリティスキャンを
 実行するためのPrefectフローを提供する。
 """
 
 import argparse
-import sys
 from pathlib import Path
-from typing import Literal, Optional
+import sys
 
 from prefect import flow, task
 from prefect.logging import get_run_logger
@@ -17,13 +16,14 @@ from .config import ScanConfig
 
 @task(name="parse-arguments", description="コマンドライン引数を解析")
 def parse_arguments_task() -> argparse.Namespace:
-    """コマンドライン引数をPrefectタスクとして解析する。
+    """コマンドライン引数をPrefectタスクとして解析する。.
 
     Returns:
         解析されたコマンドライン引数
 
     Raises:
         SystemExit: 引数の解析に失敗した場合
+
     """
     parser = argparse.ArgumentParser(
         description="Web Security Scanner with Prefect",
@@ -123,7 +123,7 @@ Examples:
 
 @task(name="validate-config", description="スキャン設定の検証")
 def validate_scan_config(args: argparse.Namespace) -> ScanConfig:
-    """コマンドライン引数からスキャン設定を検証して作成する。
+    """コマンドライン引数からスキャン設定を検証して作成する。.
 
     Args:
         args: 解析されたコマンドライン引数
@@ -133,6 +133,7 @@ def validate_scan_config(args: argparse.Namespace) -> ScanConfig:
 
     Raises:
         ValidationError: 設定の検証に失敗した場合
+
     """
     logger = get_run_logger()
 
@@ -172,7 +173,7 @@ def validate_scan_config(args: argparse.Namespace) -> ScanConfig:
     description="セキュリティスキャンオプションのチェックと検証",
 )
 def check_security_scan_option() -> ScanConfig:
-    """コマンドライン引数からセキュリティスキャンオプションをチェック・検証する。
+    """コマンドライン引数からセキュリティスキャンオプションをチェック・検証する。.
 
     このフローはコマンドライン引数を解析して検証し、
     セキュリティスキャンで使用可能なScanConfigオブジェクトを作成する。
@@ -183,6 +184,7 @@ def check_security_scan_option() -> ScanConfig:
     Raises:
         ValidationError: 設定の検証に失敗した場合
         SystemExit: 引数の解析に失敗した場合
+
     """
     logger = get_run_logger()
 
@@ -201,13 +203,14 @@ def check_security_scan_option() -> ScanConfig:
 
 @flow(name="security-scan", description="セキュリティスキャンを実行")
 def security_scan_flow(config: ScanConfig) -> dict:
-    """セキュリティスキャンをPrefectフローとして実行する。
+    """セキュリティスキャンをPrefectフローとして実行する。.
 
     Args:
         config: 検証済みのスキャン設定
 
     Returns:
         スキャン結果とレポートパスを含む辞書
+
     """
     logger = get_run_logger()
 
