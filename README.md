@@ -53,13 +53,16 @@ cd web-sec-scanner
 uv sync --all-groups
 
 # Git hooks をインストール（コミットメッセージ検証用）
-poe setup-hooks
+# 注意: poeコマンドは直接使えません。uv run poe で実行してください
+uv run poe setup-hooks
 
 # WebGoatテスト環境を起動（オプション）
-poe webgoat-start
+uv run poe webgoat-start
 
 # 開発準備完了！
 ```
+
+> **⚠️ 注意**: `poe`コマンドは直接使用できません。必ず `uv run poe <コマンド>` の形式で実行してください。
 
 ### WebGoatテスト環境（オプション）
 
@@ -67,10 +70,10 @@ poe webgoat-start
 
 ```bash
 # WebGoat起動
-poe webgoat-start
+uv run poe webgoat-start
 
 # WebGoat停止
-poe webgoat-stop
+uv run poe webgoat-stop
 ```
 
 WebGoatは意図的に脆弱性を含んだWebアプリケーションで、セキュリティ診断ツールでスキャンしてレポートを生成するためのテスト対象として使用します。
