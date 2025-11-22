@@ -394,6 +394,11 @@ def run_baseline_scan(config: ScanConfig) -> int:
     logger.info(f"Executing: {' '.join(docker_cmd)}")
 
     result = subprocess.run(docker_cmd)
+
+    # JSONレポートのエンコーディングを修正
+    if result.returncode in (0, 2):  # 成功または警告付き成功
+        _fix_json_encoding(config.report_dir)
+
     return result.returncode
 
 
@@ -450,6 +455,11 @@ def run_full_scan(config: ScanConfig) -> int:
     logger.info(f"Executing: {' '.join(docker_cmd)}")
 
     result = subprocess.run(docker_cmd)
+
+    # JSONレポートのエンコーディングを修正
+    if result.returncode in (0, 2):  # 成功または警告付き成功
+        _fix_json_encoding(config.report_dir)
+
     return result.returncode
 
 
@@ -492,7 +502,54 @@ def run_api_scan(config: ScanConfig) -> int:
     logger.info(f"Executing: {' '.join(docker_cmd)}")
 
     result = subprocess.run(docker_cmd)
+
+    # JSONレポートのエンコーディングを修正
+    if result.returncode in (0, 2):  # 成功または警告付き成功
+        _fix_json_encoding(config.report_dir)
+
     return result.returncode
+
+
+def _fix_json_encoding(report_dir: Path) -> None:
+    """JSONレポートのUnicodeエスケープをUTF-8に変換する。
+
+    Args:
+        report_dir: レポートディレクトリ
+
+    """
+    logger = get_run_logger()
+
+    try:
+        json_files = list(report_dir.glob("*.json"))
+        if not json_files:
+            return
+
+        for json_file in json_files:
+            try:
+                # JSONファイルを読み込み
+                with open(json_file, encoding="utf-8") as f:
+                    data = json.load(f)
+
+                # 一時ファイルに書き込み
+                temp_file = json_file.with_suffix(".json.tmp")
+                with open(temp_file, "w", encoding="utf-8") as f:
+                    json.dump(data, f, ensure_ascii=False, indent=2)
+
+                # 元のファイルを削除して一時ファイルをリネーム
+                json_file.unlink()
+                temp_file.rename(json_file)
+
+                logger.info(f"Fixed JSON encoding: {json_file.name}")
+
+            except Exception as e:
+                logger.warning(f"Failed to fix {json_file.name}: {e}")
+                # 一時ファイルがあれば削除
+                temp_file = json_file.with_suffix(".json.tmp")
+                if temp_file.exists():
+                    temp_file.unlink()
+
+    except Exception as e:
+        logger.warning(f"Failed to fix JSON encoding: {e}")
 
 
 @task(name="run-automation-scan", description="Automationフレームワークスキャン実行")
@@ -530,4 +587,9 @@ def run_automation_scan(config: ScanConfig) -> int:
     logger.info(f"Executing: {' '.join(docker_cmd)}")
 
     result = subprocess.run(docker_cmd)
+
+    # JSONレポートのエンコーディングを修正
+    if result.returncode in (0, 2):  # 成功または警告付き成功
+        _fix_json_encoding(config.report_dir)
+
     return result.returncode
