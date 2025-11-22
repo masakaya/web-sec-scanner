@@ -1,14 +1,15 @@
 # WebGoat テスト環境
 
-このプロジェクトには、Webアプリケーションのセキュリティテストを学習・実践するための **WebGoat** 環境が含まれています。
+このプロジェクトには、セキュリティ診断レポート出力のサンプルとして使用する **WebGoat** 環境が含まれています。
 
 ## 📋 概要
 
-WebGoatは、OWASPが提供する意図的に脆弱性を含んだWebアプリケーションで、セキュリティテストの学習と実践に最適な環境です。
+WebGoatは、OWASPが提供する意図的に脆弱性を含んだWebアプリケーションです。
+このプロジェクトでは、セキュリティ診断ツールでスキャンを実行し、レポートを生成するためのテスト対象として使用します。
 
 ### 含まれるコンポーネント
 
-- **WebGoat**: セキュリティ脆弱性の学習用Webアプリケーション（ポート8080）
+- **WebGoat**: セキュリティ脆弱性を含むWebアプリケーション（ポート8080）
 - **WebWolf**: WebGoatの補助ツール（ポート9090）
 
 ---
@@ -87,90 +88,25 @@ docker stats webgoat
 
 ---
 
-## 📚 WebGoatの使い方
-
-### レッスン構成
-
-WebGoatには以下のようなセキュリティトピックが含まれています：
-
-1. **一般的な脆弱性**
-   - SQL Injection
-   - Cross-Site Scripting (XSS)
-   - Cross-Site Request Forgery (CSRF)
-   - Path Traversal
-   - Authentication Bypass
-
-2. **アクセス制御**
-   - Broken Access Control
-   - Insecure Direct Object References
-
-3. **認証とセッション管理**
-   - Session Management
-   - Authentication Flaws
-   - JWT Tokens
-
-4. **その他**
-   - XML External Entities (XXE)
-   - Insecure Deserialization
-   - Server-Side Request Forgery (SSRF)
-
-### 学習の進め方
-
-1. **レッスンを選択**: 左側のメニューから学習したいトピックを選択
-2. **説明を読む**: 各レッスンには脆弱性の説明が含まれています
-3. **課題に挑戦**: 実際に脆弱性を突いて課題をクリア
-4. **解答を確認**: 詰まった場合はヒントや解答を参照可能
-
----
-
-## 🔧 設定
-
-### ポート設定
-
-デフォルトのポート設定は以下の通りです：
-
-- WebGoat: `8080`
-- WebWolf: `9090`
-
-ポートを変更する場合は、`compose.yml` を編集してください：
-
-```yaml
-services:
-  webgoat:
-    ports:
-      - "カスタムポート:8080"
-      - "カスタムポート:9090"
-```
-
-### 環境変数
-
-`compose.yml` で以下の環境変数を設定できます：
-
-- `WEBGOAT_HOST`: WebGoatのホスト（デフォルト: 0.0.0.0）
-- `WEBGOAT_PORT`: WebGoatのポート（デフォルト: 8080）
-- `WEBWOLF_HOST`: WebWolfのホスト（デフォルト: 0.0.0.0）
-- `WEBWOLF_PORT`: WebWolfのポート（デフォルト: 9090）
-
----
-
 ## 🎯 このプロジェクトでの活用方法
 
-このWebGoat環境は、開発中のWebセキュリティスキャナーのテスト対象として使用できます：
+WebGoat環境は、セキュリティ診断レポート出力ツールの開発とテストに使用します：
 
-1. **スキャナーの開発**: WebGoatの既知の脆弱性に対してスキャナーをテスト
-2. **検出精度の確認**: 正しく脆弱性を検出できるか検証
-3. **誤検知の削減**: 正常な機能を脆弱性として誤検知しないか確認
-4. **パフォーマンステスト**: スキャン速度や負荷テストの実施
+1. **スキャンの実行**: WebGoatに対してセキュリティ診断ツールでスキャンを実行
+2. **レポート生成**: スキャン結果からレポートを生成
+3. **レポート形式のテスト**: 様々なレポート形式（HTML, JSON, XMLなど）の出力テスト
+4. **サンプルレポート作成**: ドキュメント用のサンプルレポートを生成
 
-### スキャン例
+### セキュリティ診断ツールとの連携例（今後実装予定）
 
 ```python
 # 将来的な実装例
-from scanner import WebSecScanner
+from scanner import SecurityScanner
 
-scanner = WebSecScanner(target="http://localhost:8080/WebGoat")
+scanner = SecurityScanner(target="http://localhost:8080/WebGoat")
 results = scanner.scan()
-print(f"Found {len(results)} vulnerabilities")
+report = scanner.generate_report(format="html")
+report.save("webgoat_scan_report.html")
 ```
 
 ---
@@ -181,7 +117,7 @@ print(f"Found {len(results)} vulnerabilities")
 
 - **ローカル環境のみで使用**: WebGoatは意図的に脆弱なので、インターネットに公開しないでください
 - **本番環境で使用禁止**: 絶対に本番環境やアクセス可能なネットワークで起動しないでください
-- **学習目的のみ**: WebGoatは教育目的専用です
+- **テスト目的のみ**: WebGoatはセキュリティ診断レポート出力のテスト目的専用です
 
 ### ファイアウォール設定
 
@@ -240,7 +176,6 @@ WebGoatはJavaアプリケーションで、メモリを多く使用します。
 - [WebGoat公式サイト](https://owasp.org/www-project-webgoat/)
 - [WebGoat GitHub](https://github.com/WebGoat/WebGoat)
 - [OWASP Top 10](https://owasp.org/www-project-top-ten/)
-- [WebGoatドキュメント](https://github.com/WebGoat/WebGoat/wiki)
 
 ---
 

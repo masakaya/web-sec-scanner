@@ -63,20 +63,17 @@ poe webgoat-start
 
 ### WebGoatテスト環境（オプション）
 
-セキュリティスキャナーのテスト用に、WebGoat環境を起動できます：
+セキュリティ診断レポート出力のサンプルとして、WebGoat環境を利用できます：
 
 ```bash
 # WebGoat起動
 poe webgoat-start
 
-# アクセス
-# WebGoat: http://localhost:8080/WebGoat
-# WebWolf: http://localhost:9090/WebWolf
-
 # WebGoat停止
 poe webgoat-stop
 ```
 
+WebGoatは意図的に脆弱性を含んだWebアプリケーションで、セキュリティ診断ツールでスキャンしてレポートを生成するためのテスト対象として使用します。
 詳細は [docs/WEBGOAT.md](docs/WEBGOAT.md) を参照してください。
 
 ---
@@ -240,8 +237,8 @@ poe webgoat-stop   # WebGoat停止
 **[docs/WEBGOAT.md](docs/WEBGOAT.md)**
 - WebGoatの基本的な使い方
 - テスト環境の起動・停止
-- セキュリティ脆弱性の学習
-- スキャナーのテスト方法
+- セキュリティ診断ツールとの連携
+- レポート出力のテスト方法
 - セキュリティ上の注意事項
 
 ---
