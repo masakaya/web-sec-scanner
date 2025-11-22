@@ -1,7 +1,7 @@
-"""Main security scan flow.
+"""メインセキュリティスキャンフロー。
 
-This module provides a Prefect flow for running security scans
-against web applications.
+このモジュールはWebアプリケーションに対してセキュリティスキャンを
+実行するためのPrefectフローを提供する。
 """
 
 import argparse
@@ -17,13 +17,13 @@ from .config import ScanConfig
 
 @task(name="parse-arguments", description="コマンドライン引数を解析")
 def parse_arguments_task() -> argparse.Namespace:
-    """Parse command line arguments as a Prefect task.
+    """コマンドライン引数をPrefectタスクとして解析する。
 
     Returns:
-        Parsed command line arguments
+        解析されたコマンドライン引数
 
     Raises:
-        SystemExit: If argument parsing fails
+        SystemExit: 引数の解析に失敗した場合
     """
     parser = argparse.ArgumentParser(
         description="Web Security Scanner with Prefect",
@@ -121,16 +121,16 @@ Examples:
 
 @task(name="validate-config", description="スキャン設定の検証")
 def validate_scan_config(args: argparse.Namespace) -> ScanConfig:
-    """Validate and create scan configuration from command line arguments.
+    """コマンドライン引数からスキャン設定を検証して作成する。
 
     Args:
-        args: Parsed command line arguments
+        args: 解析されたコマンドライン引数
 
     Returns:
-        Validated ScanConfig object
+        検証済みのScanConfigオブジェクト
 
     Raises:
-        ValidationError: If configuration validation fails
+        ValidationError: 設定の検証に失敗した場合
     """
     logger = get_run_logger()
 
@@ -167,17 +167,17 @@ def validate_scan_config(args: argparse.Namespace) -> ScanConfig:
 
 @flow(name="check-security-scan-option", description="セキュリティスキャンオプションのチェックと検証")
 def check_security_scan_option() -> ScanConfig:
-    """Check and validate security scan options from command line arguments.
+    """コマンドライン引数からセキュリティスキャンオプションをチェック・検証する。
 
-    This flow parses command line arguments and validates them,
-    creating a ScanConfig object ready for use in the security scan.
+    このフローはコマンドライン引数を解析して検証し、
+    セキュリティスキャンで使用可能なScanConfigオブジェクトを作成する。
 
     Returns:
-        Validated ScanConfig object
+        検証済みのScanConfigオブジェクト
 
     Raises:
-        ValidationError: If configuration validation fails
-        SystemExit: If argument parsing fails
+        ValidationError: 設定の検証に失敗した場合
+        SystemExit: 引数の解析に失敗した場合
     """
     logger = get_run_logger()
 
@@ -196,13 +196,13 @@ def check_security_scan_option() -> ScanConfig:
 
 @flow(name="security-scan", description="セキュリティスキャンを実行")
 def security_scan_flow(config: ScanConfig) -> dict:
-    """Execute security scan as a Prefect flow.
+    """セキュリティスキャンをPrefectフローとして実行する。
 
     Args:
-        config: Validated scan configuration
+        config: 検証済みのスキャン設定
 
     Returns:
-        Dictionary containing scan results and report paths
+        スキャン結果とレポートパスを含む辞書
     """
     logger = get_run_logger()
 
