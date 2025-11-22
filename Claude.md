@@ -1,5 +1,15 @@
 # Project Rules for Claude Code
 
+## 新しい指示への対応方針
+
+**このClaude.mdに新しい指示が追加された場合、以下の手順で対応すること:**
+
+1. 新しいブランチを作成する（ブランチ命名規則に従う）
+2. 該当する変更を実装する
+3. Pull Requestを作成し、レビュープロセスに従う
+
+**保護されたブランチ（main, staging, production）に直接pushすることは禁止されています。**
+
 ## Branch Protection Policy
 
 **IMPORTANT: Direct push to the following branches is PROHIBITED:**
