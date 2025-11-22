@@ -185,6 +185,8 @@ def validate_scan_config(args: argparse.Namespace) -> ScanConfig:
         max_duration=args.max_duration,
         max_depth=args.max_depth,
         max_children=args.max_children,
+        thread_per_host=args.thread_per_host,
+        hosts_per_scan=args.hosts_per_scan,
         network_name=args.network_name,
         language=args.language,
         config_file=args.config_file,

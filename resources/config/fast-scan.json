@@ -18,7 +18,7 @@
     "policy": "Default Policy",
     "maxRuleDurationInMins": 5,
     "maxScanDurationInMins": 10,
-    "threadPerHost": 2
+    "threadPerHost": 10
   },
 
   "passive_scan_config": {

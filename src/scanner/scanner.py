@@ -285,15 +285,19 @@ def _create_automation_config(
         {"type": "passiveScan-wait", "parameters": passive_scan_wait_params}
     )
 
-    # Active Scan（プリセット設定があればマージ）
-    active_scan_params = {
-        "policy": "Default Policy",
-        "maxScanDurationInMins": config.max_duration,
-        "threadPerHost": config.thread_per_host,  # ホストごとのスレッド数（高速化）
-        "hostsPerScan": config.hosts_per_scan,    # 並列スキャンするホスト数（高速化）
-    }
+    # Active Scan（設定の優先順位: プリセット < CLI引数/config）
+    active_scan_params = {}
+
+    # プリセット設定を先に適用（低優先度）
     if scan_presets and "active_scan_config" in scan_presets:
         active_scan_params.update(scan_presets["active_scan_config"])
+
+    # CLI/config設定で上書き（高優先度）
+    active_scan_params.update({
+        "policy": active_scan_params.get("policy", "Default Policy"),
+        "maxScanDurationInMins": config.max_duration,
+        "threadPerHost": config.thread_per_host,  # ホストごとのスレッド数（高速化）
+    })
 
     automation_config["jobs"].append(
         {
