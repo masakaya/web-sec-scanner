@@ -1,6 +1,6 @@
-"""OWASP ZAP スキャナー実行モジュール。
+"""セキュリティスキャナー実行モジュール。
 
-このモジュールはOWASP ZAPを使用してWebアプリケーションの
+このモジュールはDockerコンテナを使用してWebアプリケーションの
 セキュリティスキャンを実行する機能を提供する。
 """
 # ruff: noqa: D400, D415, S603, S607
@@ -30,13 +30,13 @@ def setup_directories(config: ScanConfig) -> None:
     logger.info(f"Report directory created: {config.report_dir}")
 
     # 設定ディレクトリも作成（認証スクリプト用）
-    config_dir = config.report_dir.parent / "zap-config"
+    config_dir = config.report_dir.parent / "scanner-config"
     config_dir.mkdir(parents=True, exist_ok=True)
     logger.info(f"Config directory created: {config_dir}")
 
 
 def _create_automation_config(config: ScanConfig) -> Path:
-    """ZAP Automation Framework用のYAML設定ファイルを作成する。
+    """Automation Framework用のYAML設定ファイルを作成する。
 
     Args:
         config: スキャン設定
@@ -47,7 +47,7 @@ def _create_automation_config(config: ScanConfig) -> Path:
     """
     logger = get_run_logger()
 
-    config_dir = config.report_dir.parent / "zap-config"
+    config_dir = config.report_dir.parent / "scanner-config"
     config_dir.mkdir(parents=True, exist_ok=True)
 
     # タイムスタンプ
@@ -153,7 +153,7 @@ def _create_automation_config(config: ScanConfig) -> Path:
     )
 
     # レポート生成
-    report_file = f"zap-report-{config.scan_type}-{timestamp}"
+    report_file = f"scan-report-{config.scan_type}-{timestamp}"
     for template, ext in [
         ("traditional-html", "html"),
         ("traditional-json", "json"),
@@ -164,9 +164,9 @@ def _create_automation_config(config: ScanConfig) -> Path:
                 "type": "report",
                 "parameters": {
                     "template": template,
-                    "reportDir": "/zap/wrk",
+                    "reportDir": "/scanner/wrk",
                     "reportFile": f"{report_file}.{ext}",
-                    "reportTitle": "ZAP Security Scanning Report",
+                    "reportTitle": "Security Scanning Report",
                     "reportDescription": f"Target: {config.target_url}",
                 },
             }
@@ -186,7 +186,7 @@ def _build_docker_command(config: ScanConfig, scan_command: list) -> list:
 
     Args:
         config: スキャン設定
-        scan_command: ZAPスキャンコマンド
+        scan_command: スキャナーコマンド
 
     Returns:
         完全なDockerコマンド
@@ -203,7 +203,7 @@ def _build_docker_command(config: ScanConfig, scan_command: list) -> list:
         "--user",
         f"{uid}:{gid}",
         "-v",
-        f"{config.report_dir.absolute()}:/zap/wrk:rw",
+        f"{config.report_dir.absolute()}:/scanner/wrk:rw",
     ]
 
     # Dockerネットワーク指定
@@ -211,14 +211,14 @@ def _build_docker_command(config: ScanConfig, scan_command: list) -> list:
         cmd.extend(["--network", config.network_name])
 
     # 設定ディレクトリのマウント（automation用）
-    config_dir = config.report_dir.parent / "zap-config"
+    config_dir = config.report_dir.parent / "scanner-config"
     if config_dir.exists():
-        cmd.extend(["-v", f"{config_dir.absolute()}:/zap/config:ro"])
+        cmd.extend(["-v", f"{config_dir.absolute()}:/scanner/config:ro"])
 
     # 言語設定
     cmd.extend(["-e", f"LC_ALL={config.language}.UTF-8"])
 
-    # ZAPイメージとコマンド
+    # スキャナーイメージとコマンド
     cmd.append("ghcr.io/zaproxy/zaproxy:stable")
     cmd.extend(scan_command)
 
@@ -227,7 +227,7 @@ def _build_docker_command(config: ScanConfig, scan_command: list) -> list:
 
 @task(name="run-baseline-scan", description="ベースラインスキャン実行")
 def run_baseline_scan(config: ScanConfig) -> int:
-    """ZAPベースラインスキャンを実行する。
+    """ベースラインスキャンを実行する。
 
     Args:
         config: スキャン設定
@@ -237,10 +237,10 @@ def run_baseline_scan(config: ScanConfig) -> int:
 
     """
     logger = get_run_logger()
-    logger.info("Running ZAP Baseline Scan...")
+    logger.info("Running Baseline Scan...")
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    report_base = f"zap-report-{config.scan_type}-{timestamp}"
+    report_base = f"scan-report-{config.scan_type}-{timestamp}"
 
     scan_cmd = [
         "zap-baseline.py",
@@ -267,7 +267,7 @@ def run_baseline_scan(config: ScanConfig) -> int:
 
 @task(name="run-full-scan", description="フルスキャン実行")
 def run_full_scan(config: ScanConfig) -> int:
-    """ZAPフルスキャンを実行する。
+    """フルスキャンを実行する。
 
     Args:
         config: スキャン設定
@@ -277,10 +277,10 @@ def run_full_scan(config: ScanConfig) -> int:
 
     """
     logger = get_run_logger()
-    logger.info("Running ZAP Full Scan...")
+    logger.info("Running Full Scan...")
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    report_base = f"zap-report-{config.scan_type}-{timestamp}"
+    report_base = f"scan-report-{config.scan_type}-{timestamp}"
 
     scan_cmd = [
         "zap-full-scan.py",
@@ -304,15 +304,15 @@ def run_full_scan(config: ScanConfig) -> int:
     if config.ajax_spider:
         scan_cmd.append("-j")
 
-    # ZAP設定オプション
-    zap_opts = [
+    # スキャナー設定オプション
+    scanner_opts = [
         f"-config view.locale={config.language}",
         f"-config spider.maxDuration={config.max_duration}",
         f"-config spider.maxDepth={config.max_depth}",
         f"-config spider.maxChildren={config.max_children}",
     ]
 
-    scan_cmd.extend(["-z", " ".join(zap_opts)])
+    scan_cmd.extend(["-z", " ".join(scanner_opts)])
 
     docker_cmd = _build_docker_command(config, scan_cmd)
     logger.info(f"Executing: {' '.join(docker_cmd)}")
@@ -323,7 +323,7 @@ def run_full_scan(config: ScanConfig) -> int:
 
 @task(name="run-api-scan", description="APIスキャン実行")
 def run_api_scan(config: ScanConfig) -> int:
-    """ZAP APIスキャンを実行する。
+    """APIスキャンを実行する。
 
     Args:
         config: スキャン設定
@@ -333,10 +333,10 @@ def run_api_scan(config: ScanConfig) -> int:
 
     """
     logger = get_run_logger()
-    logger.info("Running ZAP API Scan...")
+    logger.info("Running API Scan...")
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    report_base = f"zap-report-{config.scan_type}-{timestamp}"
+    report_base = f"scan-report-{config.scan_type}-{timestamp}"
 
     scan_cmd = [
         "zap-api-scan.py",
@@ -365,7 +365,7 @@ def run_api_scan(config: ScanConfig) -> int:
 
 @task(name="run-automation-scan", description="Automationフレームワークスキャン実行")
 def run_automation_scan(config: ScanConfig) -> int:
-    """ZAP Automation Frameworkスキャンを実行する。
+    """Automation Frameworkスキャンを実行する。
 
     Args:
         config: スキャン設定
@@ -375,7 +375,7 @@ def run_automation_scan(config: ScanConfig) -> int:
 
     """
     logger = get_run_logger()
-    logger.info("Running ZAP Automation Framework...")
+    logger.info("Running Automation Framework...")
 
     # Automation設定ファイルを作成
     _ = _create_automation_config(config)
@@ -384,7 +384,7 @@ def run_automation_scan(config: ScanConfig) -> int:
         "zap.sh",
         "-cmd",
         "-autorun",
-        "/zap/config/automation-config.yaml",
+        "/scanner/config/automation-config.yaml",
         "-config",
         f"view.locale={config.language}",
     ]

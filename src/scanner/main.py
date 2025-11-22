@@ -126,7 +126,7 @@ Examples:
     scan_group.add_argument(
         "--language",
         default="ja_JP",
-        help="Language for ZAP interface and reports (default: ja_JP)",
+        help="Language for scanner interface and reports (default: ja_JP)",
     )
 
     args = parser.parse_args()

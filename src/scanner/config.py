@@ -1,9 +1,31 @@
 """Configuration models for security scanner."""
+# ruff: noqa: D400, D415
 
 from pathlib import Path
 from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
+
+
+def find_project_root() -> Path:
+    """プロジェクトルートディレクトリを探す。
+
+    pyproject.tomlまたは.gitディレクトリを持つ親ディレクトリを探す。
+    見つからない場合は、カレントディレクトリを返す。
+
+    Returns:
+        プロジェクトルートのPath
+
+    """
+    current = Path.cwd()
+
+    # 現在のディレクトリから親を辿ってpyproject.tomlまたは.gitを探す
+    for parent in [current, *current.parents]:
+        if (parent / "pyproject.toml").exists() or (parent / ".git").exists():
+            return parent
+
+    # 見つからない場合はカレントディレクトリを返す
+    return current
 
 
 class ScanConfig(BaseModel):
@@ -46,11 +68,11 @@ class ScanConfig(BaseModel):
     max_depth: int = Field(10, description="Maximum crawl depth", gt=0)
     max_children: int = Field(20, description="Maximum children per node", gt=0)
     network_name: str | None = Field(None, description="Docker network name")
-    language: str = Field("ja_JP", description="Language for ZAP (default: ja_JP)")
+    language: str = Field("ja_JP", description="Language for scanner (default: ja_JP)")
 
     # Output directory
     report_dir: Path = Field(
-        default_factory=lambda: Path.cwd() / "report",
+        default_factory=lambda: find_project_root() / "report",
         description="Directory to save reports",
     )
 
