@@ -46,6 +46,7 @@ class ScanConfig(BaseModel):
     max_depth: int = Field(10, description="Maximum crawl depth", gt=0)
     max_children: int = Field(20, description="Maximum children per node", gt=0)
     network_name: str | None = Field(None, description="Docker network name")
+    language: str = Field("ja_JP", description="Language for ZAP (default: ja_JP)")
 
     # Output directory
     report_dir: Path = Field(

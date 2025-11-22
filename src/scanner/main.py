@@ -116,6 +116,11 @@ Examples:
         type=Path,
         help="Directory to save reports (default: ./report)",
     )
+    scan_group.add_argument(
+        "--language",
+        default="ja_JP",
+        help="Language for ZAP interface and reports (default: ja_JP)",
+    )
 
     args = parser.parse_args()
     return args
@@ -155,6 +160,7 @@ def validate_scan_config(args: argparse.Namespace) -> ScanConfig:
         max_depth=args.max_depth,
         max_children=args.max_children,
         network_name=args.network_name,
+        language=args.language,
         report_dir=args.report_dir or Path.cwd() / "report",
     )
 
@@ -164,6 +170,7 @@ def validate_scan_config(args: argparse.Namespace) -> ScanConfig:
     logger.info(f"Authentication: {config.auth_type}")
     logger.info(f"AJAX Spider: {config.ajax_spider}")
     logger.info(f"Max Duration: {config.max_duration} minutes")
+    logger.info(f"Language: {config.language}")
 
     return config
 
