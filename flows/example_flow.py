@@ -39,7 +39,9 @@ def process_data(data: list[int]) -> list[int]:
 
 
 @flow(name="example-workflow", description="Example workflow demonstrating Prefect")
-def example_workflow(name: str = "World", numbers: list[int] | None = None) -> dict[str, str | list[int]]:
+def example_workflow(
+    name: str = "World", numbers: list[int] | None = None
+) -> dict[str, str | list[int]]:
     """Demonstrate Prefect task orchestration.
 
     Args:
