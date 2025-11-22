@@ -1,0 +1,93 @@
+name: PR Auto Labeler
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize]
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  label-conventional-commits:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Add Conventional Commits labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prTitle = context.payload.pull_request.title;
+            const prBody = context.payload.pull_request.body || '';
+
+            // Conventional Commitsのタイプとラベルのマッピング
+            const typeToLabel = {
+              'feat': 'feature',
+              'fix': 'bugfix',
+              'docs': 'documentation',
+              'style': 'style',
+              'refactor': 'refactoring',
+              'perf': 'performance',
+              'test': 'testing',
+              'chore': 'chore',
+              'ci': 'ci',
+              'build': 'build',
+              'revert': 'revert'
+            };
+
+            const labelsToAdd = new Set();
+
+            // PRタイトルからタイプを抽出
+            const titleMatch = prTitle.match(/^(\w+)(?:\(.+\))?:/);
+            if (titleMatch) {
+              const type = titleMatch[1];
+              if (typeToLabel[type]) {
+                labelsToAdd.add(typeToLabel[type]);
+              }
+            }
+
+            // PRに含まれるコミットからもタイプを抽出
+            const { data: commits } = await github.rest.pulls.listCommits({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number
+            });
+
+            for (const commit of commits) {
+              const commitMatch = commit.commit.message.match(/^(\w+)(?:\(.+\))?:/);
+              if (commitMatch) {
+                const type = commitMatch[1];
+                if (typeToLabel[type]) {
+                  labelsToAdd.add(typeToLabel[type]);
+                }
+              }
+            }
+
+            // release-pleaseが作成したPRかチェック
+            const isReleasePR = prTitle.startsWith('chore(main):') ||
+                                prTitle.startsWith('chore:') && prBody.includes('release-please');
+
+            if (isReleasePR) {
+              labelsToAdd.add('release');
+            }
+
+            // ラベルを追加
+            if (labelsToAdd.size > 0) {
+              const currentLabels = context.payload.pull_request.labels.map(label => label.name);
+              const newLabels = Array.from(labelsToAdd).filter(label => !currentLabels.includes(label));
+
+              if (newLabels.length > 0) {
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.payload.pull_request.number,
+                  labels: newLabels
+                });
+
+                console.log(`Added labels: ${newLabels.join(', ')}`);
+              }
+            }

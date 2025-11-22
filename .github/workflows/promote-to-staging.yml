@@ -1,0 +1,39 @@
+name: Promote to Staging
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  create-staging-pr:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch all branches
+        run: git fetch origin
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+
+      - name: Install git-pr-release
+        run: gem install git-pr-release
+
+      - name: Create or update release PR
+        env:
+          GIT_PR_RELEASE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GIT_PR_RELEASE_BRANCH_PRODUCTION: staging
+          GIT_PR_RELEASE_BRANCH_STAGING: main
+          GIT_PR_RELEASE_LABELS: staging,promotion
+        run: |
+          git-pr-release --squashed

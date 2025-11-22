@@ -1,0 +1,43 @@
+# reviewdog設定ファイル
+# https://github.com/reviewdog/reviewdog
+
+runner:
+  ruff:
+    cmd: uv run ruff check . --output-format=json
+    format: ruff
+    level: warning
+    # 自動修正できない問題のみ表示する場合
+    # filter_mode: added
+
+  ruff-format:
+    cmd: uv run ruff format --check . --diff
+    format: diff
+    level: warning
+    # フォーマットの問題も表示
+
+  mypy:
+    cmd: uv run mypy . --show-column-numbers --no-error-summary
+    format: mypy
+    level: error
+    # 型エラーは重要度が高い
+
+# PRレビュー時の設定
+github:
+  # PRの該当行にコメント
+  reporter: github-pr-review
+
+  # フィルタリングモード
+  # - added: 追加された行のみ
+  # - diff_context: 変更された周辺のみ
+  # - file: ファイル全体
+  # - nofilter: すべて
+  filter_mode: added
+
+  # エラーレベルでfailさせるか
+  fail_on_error: true
+
+  # レビューコメントのスタイル
+  # - github-pr-review: PRレビューコメント
+  # - github-pr-check: Check Run
+  # - github-check: GitHub Checks API
+  level: warning

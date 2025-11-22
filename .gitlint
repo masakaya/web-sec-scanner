@@ -1,0 +1,26 @@
+# Gitlint configuration for Conventional Commits
+# See https://jorisroovers.com/gitlint/ for documentation
+
+[general]
+# Ignore rules
+ignore=body-is-missing
+
+# Set the verbosity level (0-3)
+verbosity=2
+
+[title-max-length]
+line-length=72
+
+[title-match-regex]
+# Enforce Conventional Commits format
+# Allowed types: feat, fix, chore, docs, refactor, test, ci
+# Format: <type>[optional scope][!]: <description>
+# Examples:
+#   feat: add new feature
+#   fix: resolve bug
+#   feat!: breaking change
+#   feat(api): add endpoint
+regex=^(feat|fix|chore|docs|refactor|test|ci)(\(.+\))?!?: .+
+
+[title-min-length]
+min-length=10

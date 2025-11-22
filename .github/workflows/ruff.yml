@@ -1,0 +1,54 @@
+name: Ruff Code Quality
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  ruff-check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # フォーマット自動コミット用
+      pull-requests: write
+      checks: write  # reviewdog用
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install dependencies
+        run: uv sync --all-groups
+
+      - name: Setup reviewdog
+        uses: reviewdog/action-setup@v1
+        with:
+          reviewdog_version: latest
+
+      - name: Run Ruff with reviewdog
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          uv run ruff check . --output-format=concise | \
+          reviewdog -efm="%f:%l:%c: %m" -name="ruff" -reporter=github-pr-review -filter-mode=diff_context -level=warning || true
+
+      - name: Run Ruff format and auto-commit
+        if: github.event_name == 'pull_request'
+        run: |
+          uv run ruff format .
+
+      - name: Auto-commit formatting changes
+        if: github.event_name == 'pull_request'
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "style: auto-format code with ruff"
+          commit_user_name: "github-actions[bot]"
+          commit_user_email: "github-actions[bot]@users.noreply.github.com"
+          commit_author: "github-actions[bot] <github-actions[bot]@users.noreply.github.com>"

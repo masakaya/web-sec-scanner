@@ -1,0 +1,62 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "packageRules": [
+    {
+      "description": "Python バージョンは更新しない",
+      "matchManagers": ["pep621"],
+      "matchPackageNames": ["python"],
+      "enabled": false
+    },
+    {
+      "description": "Python 依存関係の自動更新",
+      "matchManagers": ["pep621"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "メジャーアップデートは手動レビュー",
+      "matchUpdateTypes": ["major"],
+      "automerge": false,
+      "labels": ["major-update"]
+    },
+    {
+      "description": "開発依存関係",
+      "matchDepTypes": ["dev-dependencies"],
+      "automerge": true,
+      "labels": ["dependencies", "dev-dependencies"]
+    },
+    {
+      "description": "本番依存関係",
+      "matchDepTypes": ["dependencies"],
+      "automerge": false,
+      "labels": ["dependencies", "production"]
+    },
+    {
+      "description": "GitHub Actions のバージョン更新",
+      "matchManagers": ["github-actions"],
+      "groupName": "GitHub Actions",
+      "automerge": true,
+      "labels": ["dependencies", "github-actions"]
+    }
+  ],
+  "schedule": [
+    "every weekend"
+  ],
+  "timezone": "Asia/Tokyo",
+  "labels": ["dependencies", "renovate"],
+  "commitMessagePrefix": "chore(deps):",
+  "commitMessageAction": "update",
+  "prConcurrentLimit": 5,
+  "prHourlyLimit": 2,
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 3am on Monday"]
+  },
+  "vulnerabilityAlerts": {
+    "labels": ["security"],
+    "automerge": false
+  }
+}

@@ -1,0 +1,40 @@
+name: mypy Type Check
+
+on:
+  workflow_dispatch:  # 手動実行を可能にする
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  mypy-check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      checks: write  # reviewdog用
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install dependencies
+        run: uv sync --all-groups
+
+      - name: Setup reviewdog
+        uses: reviewdog/action-setup@v1
+        with:
+          reviewdog_version: latest
+
+      - name: Run mypy with reviewdog
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          uv run mypy . --show-column-numbers --no-error-summary 2>&1 | tee mypy-output.txt | \
+          reviewdog -efm="%f:%l:%c: %m" -name="mypy" -reporter=github-pr-review -filter-mode=diff_context -level=error || true
+          echo "=== mypy output ==="
+          cat mypy-output.txt
