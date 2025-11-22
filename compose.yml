@@ -1,0 +1,13 @@
+services:
+  webgoat:
+    image: webgoat/webgoat:latest
+    container_name: webgoat
+    ports:
+      - "8080:8080"
+      - "9090:9090"
+    environment:
+      - WEBGOAT_HOST=0.0.0.0
+      - WEBGOAT_PORT=8080
+      - WEBWOLF_HOST=0.0.0.0
+      - WEBWOLF_PORT=9090
+    restart: unless-stopped

@@ -172,6 +172,25 @@ cmd = "python flows/example_flow.py"
 help = "Deploy Prefect flows"
 cmd = "prefect deploy --all"
 
+# ----------------------------------------
+# WebGoat (Docker Compose)
+# ----------------------------------------
+[tool.poe.tasks.webgoat-start]
+help = "Start WebGoat testing environment"
+cmd = "docker compose up -d"
+
+[tool.poe.tasks.webgoat-stop]
+help = "Stop WebGoat testing environment"
+cmd = "docker compose down"
+
+[tool.poe.tasks.webgoat-logs]
+help = "Show WebGoat logs"
+cmd = "docker compose logs -f webgoat"
+
+[tool.poe.tasks.webgoat-restart]
+help = "Restart WebGoat testing environment"
+cmd = "docker compose restart"
+
 # ========================================
 # pytest設定
 # ========================================
