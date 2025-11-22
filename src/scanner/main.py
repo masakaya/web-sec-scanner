@@ -12,6 +12,13 @@ from prefect import flow, task
 from prefect.logging import get_run_logger
 
 from .config import ScanConfig
+from .scanner import (
+    run_api_scan,
+    run_automation_scan,
+    run_baseline_scan,
+    run_full_scan,
+    setup_directories,
+)
 
 
 @task(name="parse-arguments", description="コマンドライン引数を解析")
@@ -226,13 +233,28 @@ def security_scan_flow(config: ScanConfig) -> dict:
     logger.info(f"Target URL: {config.target_url}")
     logger.info(f"Authentication: {config.auth_type}")
 
-    # TODO: 実際のスキャンロジックを実装
-    logger.warning("⚠ Scan logic not yet implemented")
+    # ディレクトリのセットアップ
+    setup_directories(config)
+
+    # スキャンタイプに応じたスキャン実行
+    scan_tasks = {
+        "baseline": run_baseline_scan,
+        "full": run_full_scan,
+        "api": run_api_scan,
+        "automation": run_automation_scan,
+    }
+
+    exit_code = scan_tasks[config.scan_type](config)
+
+    # 結果の返却
+    status = "completed" if exit_code == 0 else "failed"
+    logger.info(f"Scan {status} with exit code: {exit_code}")
 
     return {
-        "status": "pending",
+        "status": status,
+        "exit_code": exit_code,
         "config": config.model_dump(),
-        "message": "Flow structure created successfully",
+        "report_dir": str(config.report_dir),
     }
 
 
