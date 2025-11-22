@@ -15,7 +15,7 @@ from prefect.logging import get_run_logger
 from .config import ScanConfig
 
 
-@task(name="parse-arguments", description="Parse command line arguments")
+@task(name="parse-arguments", description="コマンドライン引数を解析")
 def parse_arguments_task() -> argparse.Namespace:
     """Parse command line arguments as a Prefect task.
 
@@ -48,7 +48,7 @@ Examples:
         """,
     )
 
-    # Required arguments
+    # 必須引数
     parser.add_argument(
         "scan_type",
         choices=["baseline", "full", "api", "automation"],
@@ -56,7 +56,7 @@ Examples:
     )
     parser.add_argument("target_url", help="Target URL to scan")
 
-    # Authentication options
+    # 認証オプション
     auth_group = parser.add_argument_group("authentication options")
     auth_group.add_argument("--username", help="Username for authentication")
     auth_group.add_argument("--password", help="Password for authentication")
@@ -86,7 +86,7 @@ Examples:
         help="Session management method (default: cookie)",
     )
 
-    # Scan options
+    # スキャンオプション
     scan_group = parser.add_argument_group("scan options")
     scan_group.add_argument(
         "--ajax-spider",
@@ -119,7 +119,7 @@ Examples:
     return args
 
 
-@task(name="validate-config", description="Validate scan configuration")
+@task(name="validate-config", description="スキャン設定の検証")
 def validate_scan_config(args: argparse.Namespace) -> ScanConfig:
     """Validate and create scan configuration from command line arguments.
 
@@ -165,7 +165,7 @@ def validate_scan_config(args: argparse.Namespace) -> ScanConfig:
     return config
 
 
-@flow(name="check-security-scan-option", description="Check and validate security scan options")
+@flow(name="check-security-scan-option", description="セキュリティスキャンオプションのチェックと検証")
 def check_security_scan_option() -> ScanConfig:
     """Check and validate security scan options from command line arguments.
 
@@ -183,10 +183,10 @@ def check_security_scan_option() -> ScanConfig:
 
     logger.info("Checking security scan options from command line arguments...")
 
-    # Parse command line arguments
+    # コマンドライン引数を解析
     args = parse_arguments_task()
 
-    # Validate the configuration
+    # 設定を検証
     config = validate_scan_config(args)
 
     logger.info("✓ Security scan options validated successfully")
@@ -194,7 +194,7 @@ def check_security_scan_option() -> ScanConfig:
     return config
 
 
-@flow(name="security-scan", description="Run security scan")
+@flow(name="security-scan", description="セキュリティスキャンを実行")
 def security_scan_flow(config: ScanConfig) -> dict:
     """Execute security scan as a Prefect flow.
 
@@ -211,7 +211,7 @@ def security_scan_flow(config: ScanConfig) -> dict:
     logger.info(f"Target URL: {config.target_url}")
     logger.info(f"Authentication: {config.auth_type}")
 
-    # TODO: Implement actual scan logic
+    # TODO: 実際のスキャンロジックを実装
     logger.warning("⚠ Scan logic not yet implemented")
 
     return {
@@ -223,10 +223,10 @@ def security_scan_flow(config: ScanConfig) -> dict:
 
 if __name__ == "__main__":
     try:
-        # Check and validate scan options (parses arguments internally)
+        # スキャンオプションをチェック・検証（内部で引数を解析）
         config = check_security_scan_option()
 
-        # Then, execute the security scan flow
+        # セキュリティスキャンフローを実行
         result = security_scan_flow(config)
 
         print(f"\n{'='*60}")
@@ -242,9 +242,9 @@ if __name__ == "__main__":
         print("\n\nScan interrupted by user")
         sys.exit(130)
     except SystemExit:
-        # Re-raise SystemExit from argparse (which already printed usage)
+        # argparseからのSystemExitを再送出（使用方法は既に出力済み）
         raise
     except Exception as e:
-        # Print error message for validation errors
+        # 検証エラーのエラーメッセージを出力
         print(f"\nError: {e}", file=sys.stderr)
         sys.exit(1)
