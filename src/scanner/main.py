@@ -69,7 +69,7 @@ Examples:
     auth_group.add_argument("--password", help="Password for authentication")
     auth_group.add_argument(
         "--auth-type",
-        choices=["none", "form", "json", "basic"],
+        choices=["none", "form", "json", "basic", "bearer"],
         default="none",
         help="Authentication type (default: none)",
     )
@@ -91,6 +91,20 @@ Examples:
         choices=["cookie", "http"],
         default="cookie",
         help="Session management method (default: cookie)",
+    )
+    auth_group.add_argument(
+        "--auth-token",
+        help="Bearer token for authentication (JWT, API key, etc.)",
+    )
+    auth_group.add_argument(
+        "--auth-header",
+        default="Authorization",
+        help="Header name for token authentication (default: Authorization)",
+    )
+    auth_group.add_argument(
+        "--token-prefix",
+        default="Bearer",
+        help="Token prefix (default: Bearer, use 'none' for no prefix)",
     )
 
     # スキャンオプション
@@ -181,6 +195,9 @@ def validate_scan_config(args: argparse.Namespace) -> ScanConfig:
         logged_in_indicator=args.logged_in_indicator,
         logged_out_indicator=args.logged_out_indicator,
         session_method=args.session_method,
+        auth_token=args.auth_token,
+        auth_header=args.auth_header,
+        token_prefix=args.token_prefix,
         ajax_spider=args.ajax_spider,
         max_duration=args.max_duration,
         max_depth=args.max_depth,

@@ -272,6 +272,8 @@ exclude = [
     "^build/",
     "^dist/",
     "^tests/",
+    "^tmp/",
+    "^resources/templates/",
 ]
 
 # サードパーティライブラリの型スタブがない場合
@@ -280,5 +282,7 @@ module = [
     "pytest.*",
     "pastel.*",
     "prefect.*",
+    "yaml.*",
+    "utils",
 ]
 ignore_missing_imports = true

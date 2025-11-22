@@ -9,6 +9,7 @@ from datetime import datetime
 import json
 from pathlib import Path
 import subprocess
+from typing import Any
 from urllib.parse import urlparse
 
 from prefect import task
@@ -67,7 +68,7 @@ def setup_directories(config: ScanConfig) -> None:
     logger.info(f"Config directory created: {config_dir}")
 
 
-def load_scan_presets(config_file: Path) -> dict:
+def load_scan_presets(config_file: Path) -> dict[str, Any]:
     """設定プリセットファイルを読み込む。
 
     Args:
@@ -90,7 +91,7 @@ def load_scan_presets(config_file: Path) -> dict:
     logger.info(f"Loading scan presets from: {config_file}")
 
     with open(config_file) as f:
-        presets = json.load(f)
+        presets: dict[str, Any] = json.load(f)
 
     logger.info("✓ Scan presets loaded successfully")
     return presets
@@ -171,7 +172,7 @@ def _create_automation_config(
     config: ScanConfig,
     report_subdir: Path,
     timestamp: str,
-    scan_presets: dict | None = None,
+    scan_presets: dict[str, Any] | None = None,
 ) -> Path:
     """Automation Framework用のYAML設定ファイルを作成する。
 
@@ -190,7 +191,7 @@ def _create_automation_config(
     config_dir = config.report_dir.parent / "scanner-config"
     config_dir.mkdir(parents=True, exist_ok=True)
 
-    automation_config = {
+    automation_config: dict[str, Any] = {
         "env": {
             "contexts": [
                 {
@@ -642,36 +643,70 @@ def _create_auth_hook_script(config: ScanConfig, config_dir: Path) -> Path | Non
     if not template_path.exists():
         raise FileNotFoundError(f"Hook script template not found: {template_path}")
 
-    with open(template_path, "r", encoding="utf-8") as f:
+    with open(template_path, encoding="utf-8") as f:
         template = f.read()
 
     # ベースURLを取得
     parsed_url = urlparse(config.target_url)
     base_url = f"{parsed_url.scheme}://{parsed_url.netloc}"
 
-    # URL エンコードされたログインリクエストデータを生成
-    import urllib.parse
-    login_data = f"{config.username_field}={{%username%}}&{config.password_field}={{%password%}}"
-    encoded_login_data = urllib.parse.quote(login_data, safe='')
+    # 認証タイプに応じてテンプレートのプレースホルダーを準備
+    if config.auth_type == "bearer":
+        # Bearer/JWT認証用のパラメータ
+        hook_script = template.format(
+            base_url_pattern=f"{base_url}/.*",
+            auth_token=config.auth_token or "",
+            auth_header=config.auth_header,
+            token_prefix=config.token_prefix,
+            # 未使用のプレースホルダーも空文字で埋める（テンプレートのエラー回避）
+            login_url="",
+            login_data_encoded="",
+            logged_in_indicator="",
+            logged_in_indicator_regex="",
+            logged_out_indicator="",
+            logged_out_indicator_regex="",
+            username="",
+            password="",
+            username_field="",
+            password_field="",
+        )
+    else:
+        # Form/JSON/Basic認証用のパラメータ
+        import urllib.parse
+        login_data = f"{config.username_field}={{%username%}}&{config.password_field}={{%password%}}"
+        encoded_login_data = urllib.parse.quote(login_data, safe='')
 
-    # ログイン判定用の正規表現（\Qと\Eでリテラル文字列として扱う）
-    logged_in_regex = f"\\\\Q{config.logged_in_indicator}\\\\E" if config.logged_in_indicator else ""
-    logged_out_regex = f"\\\\Q{config.logged_out_indicator}\\\\E" if config.logged_out_indicator else ""
+        # ログイン判定用の正規表現（\Qと\Eでリテラル文字列として扱う）
+        logged_in_regex = f"\\\\Q{config.logged_in_indicator}\\\\E" if config.logged_in_indicator else ""
+        logged_out_regex = f"\\\\Q{config.logged_out_indicator}\\\\E" if config.logged_out_indicator else ""
 
-    # テンプレートのプレースホルダーを置換
-    hook_script = template.format(
-        base_url_pattern=f"{base_url}/.*",
-        login_url=config.login_url or "",
-        login_data_encoded=encoded_login_data,
-        logged_in_indicator=config.logged_in_indicator or "",
-        logged_in_indicator_regex=logged_in_regex,
-        logged_out_indicator=config.logged_out_indicator or "",
-        logged_out_indicator_regex=logged_out_regex,
-        username=config.username or "",
-        password=config.password or "",
-        username_field=config.username_field,
-        password_field=config.password_field,
-    )
+        hook_script = template.format(
+            base_url_pattern=f"{base_url}/.*",
+            login_url=config.login_url or "",
+            login_data_encoded=encoded_login_data,
+            logged_in_indicator=config.logged_in_indicator or "",
+            logged_in_indicator_regex=logged_in_regex,
+            logged_out_indicator=config.logged_out_indicator or "",
+            logged_out_indicator_regex=logged_out_regex,
+            username=config.username or "",
+            password=config.password or "",
+            username_field=config.username_field,
+            password_field=config.password_field,
+            # Bearer認証用のプレースホルダーを空文字で埋める
+            auth_token="",
+            auth_header="",
+            token_prefix="",
+        )
+
+    # Bearer認証の場合、zap_tuned関数をBearer版に置き換える
+    if config.auth_type == "bearer":
+        # zap_tuned_bearer関数の名前をzap_tunedに変更
+        hook_script = hook_script.replace("def zap_tuned_bearer(zap):", "def zap_tuned(zap):")
+        # 元のzap_tuned関数（form-based）を削除
+        import re
+        # 最初のzap_tuned関数定義から次の関数定義の直前までを削除
+        pattern = r'def zap_tuned\(zap\):.*?(?=\ndef zap_spider\(zap, target\):)'
+        hook_script = re.sub(pattern, '', hook_script, count=1, flags=re.DOTALL)
 
     # フックスクリプトを保存
     hook_file = config_dir / "zap_hooks.py"

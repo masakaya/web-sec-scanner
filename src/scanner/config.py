@@ -4,7 +4,7 @@
 from pathlib import Path
 from typing import Literal
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from utils import find_project_root
 
@@ -25,7 +25,7 @@ class ScanConfig(BaseModel):
     # Authentication options
     username: str | None = Field(None, description="Username for authentication")
     password: str | None = Field(None, description="Password for authentication")
-    auth_type: Literal["none", "form", "json", "basic"] = Field(
+    auth_type: Literal["none", "form", "json", "basic", "bearer"] = Field(
         "none", description="Authentication type"
     )
     login_url: str | None = Field(None, description="Login endpoint URL")
@@ -39,6 +39,17 @@ class ScanConfig(BaseModel):
     )
     session_method: Literal["cookie", "http"] = Field(
         "cookie", description="Session management method"
+    )
+
+    # Bearer/Token authentication options
+    auth_token: str | None = Field(
+        None, description="Bearer token for authentication (JWT, API key, etc.)"
+    )
+    auth_header: str = Field(
+        "Authorization", description="Header name for token authentication"
+    )
+    token_prefix: str = Field(
+        "Bearer", description="Token prefix (use 'none' for no prefix)"
     )
 
     # Scan options
@@ -74,22 +85,23 @@ class ScanConfig(BaseModel):
             raise ValueError("target_url must start with http:// or https://")
         return v
 
-    @field_validator("auth_type")
-    @classmethod
-    def validate_auth_requirements(cls, v: str, info) -> str:
+    @model_validator(mode="after")
+    def validate_auth_requirements(self) -> "ScanConfig":
         """Validate authentication requirements.
 
-        If auth_type is not 'none', username and password must be provided.
+        If auth_type is 'bearer', auth_token must be provided.
+        If auth_type is not 'none' or 'bearer', username and password must be provided.
         """
-        # Note: This validator receives the current field value (auth_type)
-        # and info.data contains other fields that have been validated so far
-        if v != "none":
-            data = info.data
-            if not data.get("username") or not data.get("password"):
+        if self.auth_type == "bearer":
+            if not self.auth_token:
                 raise ValueError(
-                    f"username and password are required when auth_type is '{v}'"
+                    "auth_token is required when auth_type is 'bearer'"
                 )
-        return v
+        elif self.auth_type != "none" and (not self.username or not self.password):
+            raise ValueError(
+                f"username and password are required when auth_type is '{self.auth_type}'"
+            )
+        return self
 
     @field_validator("max_duration", "max_depth", "max_children", "thread_per_host", "hosts_per_scan")
     @classmethod

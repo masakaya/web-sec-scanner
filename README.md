@@ -79,6 +79,72 @@ uv run poe webgoat-stop
 WebGoatは意図的に脆弱性を含んだWebアプリケーションで、セキュリティ診断ツールでスキャンしてレポートを生成するためのテスト対象として使用します。
 詳細は [docs/WEBGOAT.md](docs/WEBGOAT.md) を参照してください。
 
+### Bearer/JWT認証によるセキュリティスキャン
+
+最新のSPA（Single Page Application）で広く使われるBearer/JWT認証に対応したセキュリティスキャンが可能です。
+
+#### 準備
+
+```bash
+# Juice Shop起動（JWT認証のテスト環境）
+docker compose up -d juice-shop
+
+# JWTトークンを取得（ヘルパースクリプト使用）
+./scripts/get-juice-shop-token.sh
+```
+
+#### スキャン実行例
+
+```bash
+# 1. 高速スキャン（Automation Framework）- 約3分
+export JWT_TOKEN='your-jwt-token-here'
+PYTHONPATH=src uv run python -m scanner.main automation http://juice-shop:3000 \
+  --auth-type bearer \
+  --auth-token "$JWT_TOKEN" \
+  --network web-sec-scanner_default \
+  --config-file resources/config/fast-scan.json \
+  --max-duration 3
+
+# 2. フルスキャン - 約10-15分（※Bearer認証は現在automation/apiスキャンのみ対応）
+# PYTHONPATH=src uv run python -m scanner.main full http://juice-shop:3000 \
+#   --auth-type bearer \
+#   --auth-token "$JWT_TOKEN" \
+#   --network web-sec-scanner_default \
+#   --ajax-spider \
+#   --max-duration 10
+
+# 3. APIスキャン - 約5-10分
+PYTHONPATH=src uv run python -m scanner.main api http://juice-shop:3000 \
+  --auth-type bearer \
+  --auth-token "$JWT_TOKEN" \
+  --network web-sec-scanner_default \
+  --max-duration 10
+```
+
+#### スキャン結果の確認
+
+スキャン完了後、`report/` ディレクトリにレポートが生成されます：
+
+```bash
+# レポート一覧
+ls -lh report/
+
+# HTMLレポートをブラウザで開く
+xdg-open report/<scan-directory>/scan-report.html  # Linux
+open report/<scan-directory>/scan-report.html      # macOS
+```
+
+#### 対応する認証方式
+
+| 認証方式 | パラメータ | 用途 |
+|---------|-----------|------|
+| **Bearer** | `--auth-type bearer --auth-token <token>` | JWT/API Token認証（SPA、REST API） |
+| **Form** | `--auth-type form --username <user> --password <pass>` | フォームベース認証 |
+| **JSON** | `--auth-type json --username <user> --password <pass>` | JSON APIログイン |
+| **Basic** | `--auth-type basic --username <user> --password <pass>` | Basic認証 |
+
+詳細な使い方とトラブルシューティングは [docs/JUICE_SHOP.md](docs/JUICE_SHOP.md) を参照してください。
+
 ---
 
 ## 📝 コミットルール（必読）
