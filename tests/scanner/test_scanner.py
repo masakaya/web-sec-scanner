@@ -6,8 +6,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from scanner.config import ScanConfig
-from scanner.scanner import (
+from src.scanner.config import ScanConfig
+from src.scanner.scanner import (
     _create_timestamped_report_dir,
     _detect_docker_network,
     _fix_json_encoding,

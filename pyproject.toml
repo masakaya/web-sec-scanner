@@ -206,6 +206,7 @@ cmd = "docker compose restart"
 # pytest設定
 # ========================================
 [tool.pytest.ini_options]
+pythonpath = ["."]
 testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]

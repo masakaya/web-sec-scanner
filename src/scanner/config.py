@@ -6,7 +6,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
-from utils import find_project_root
+from src.utils import find_project_root
 
 
 class ScanConfig(BaseModel):

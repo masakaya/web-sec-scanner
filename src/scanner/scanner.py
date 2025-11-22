@@ -637,7 +637,7 @@ def _create_auth_hook_script(config: ScanConfig, config_dir: Path) -> Path | Non
     logger = get_run_logger()
 
     # テンプレートファイルを読み込む
-    from utils import find_project_root
+    from src.utils import find_project_root
     template_path = find_project_root() / "resources" / "templates" / "zap_hooks_template.py"
 
     if not template_path.exists():
@@ -669,6 +669,15 @@ def _create_auth_hook_script(config: ScanConfig, config_dir: Path) -> Path | Non
             password="",
             username_field="",
             password_field="",
+            # テンプレート内の print文用のプレースホルダー
+            context_name="scan-context",
+            context_id="{context_id}",
+            user_name="{user_name}",
+            user_id="{user_id}",
+            scan_id="{scan_id}",
+            auth_method="{auth_method}",
+            e="{e}",
+            token_value="{token_value}",
         )
     else:
         # Form/JSON/Basic認証用のパラメータ
@@ -696,6 +705,15 @@ def _create_auth_hook_script(config: ScanConfig, config_dir: Path) -> Path | Non
             auth_token="",
             auth_header="",
             token_prefix="",
+            # テンプレート内の print文用のプレースホルダー
+            context_name="scan-context",
+            context_id="{context_id}",
+            user_name="{user_name}",
+            user_id="{user_id}",
+            scan_id="{scan_id}",
+            auth_method="{auth_method}",
+            e="{e}",
+            token_value="{token_value}",
         )
 
     # Bearer認証の場合、zap_tuned関数をBearer版に置き換える
