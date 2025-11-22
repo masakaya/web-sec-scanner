@@ -9,6 +9,7 @@ from datetime import datetime
 import json
 from pathlib import Path
 import subprocess
+from urllib.parse import urlparse
 
 from prefect import task
 from prefect.logging import get_run_logger
@@ -28,6 +29,8 @@ def setup_directories(config: ScanConfig) -> None:
     logger = get_run_logger()
 
     config.report_dir.mkdir(parents=True, exist_ok=True)
+    # Dockerコンテナからの書き込みを可能にするため777に設定
+    config.report_dir.chmod(0o777)
     logger.info(f"Report directory created: {config.report_dir}")
 
     # 設定ディレクトリも作成（認証スクリプト用）
@@ -63,6 +66,77 @@ def load_scan_presets(config_file: Path) -> dict:
 
     logger.info("✓ Scan presets loaded successfully")
     return presets
+
+
+def _detect_docker_network(target_url: str) -> str | None:
+    """ターゲットURLからDockerネットワークを自動検出する。
+
+    Args:
+        target_url: スキャン対象のURL
+
+    Returns:
+        検出されたDockerネットワーク名、または検出できない場合はNone
+
+    """
+    logger = get_run_logger()
+
+    # URLからホスト名を抽出
+    parsed = urlparse(target_url)
+    hostname = parsed.hostname
+
+    # localhost、IPアドレス、または外部ドメインの場合はネットワーク不要
+    if not hostname:
+        return None
+
+    if hostname in ("localhost", "127.0.0.1") or "." in hostname:
+        # localhostまたはFQDN（外部サービス）の場合
+        logger.info(f"Target is {hostname}, no Docker network needed")
+        return None
+
+    try:
+        # docker psでコンテナ名またはホスト名からネットワークを検出
+        result = subprocess.run(
+            [
+                "docker",
+                "ps",
+                "--filter",
+                f"name={hostname}",
+                "--format",
+                "{{.Networks}}",
+            ],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
+        if result.returncode == 0 and result.stdout.strip():
+            network = result.stdout.strip()
+            logger.info(f"Auto-detected Docker network: {network}")
+            return network
+
+        # プロジェクト名からデフォルトネットワークを推測
+        project_root = Path.cwd()
+        project_name = project_root.name
+        default_network = f"{project_name}_default"
+
+        # デフォルトネットワークが存在するか確認
+        result = subprocess.run(
+            ["docker", "network", "ls", "--format", "{{.Name}}"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
+        if default_network in result.stdout:
+            logger.info(f"Using default project network: {default_network}")
+            return default_network
+
+        logger.warning(f"Could not detect Docker network for {hostname}")
+        return None
+
+    except Exception as e:
+        logger.warning(f"Failed to detect Docker network: {e}")
+        return None
 
 
 def _create_automation_config(
@@ -241,6 +315,8 @@ def _build_docker_command(config: ScanConfig, scan_command: list) -> list:
         完全なDockerコマンド
 
     """
+    logger = get_run_logger()
+
     # ユーザーIDとグループIDを取得
     uid = subprocess.check_output(["id", "-u"]).decode().strip()
     gid = subprocess.check_output(["id", "-g"]).decode().strip()
@@ -255,9 +331,16 @@ def _build_docker_command(config: ScanConfig, scan_command: list) -> list:
         f"{config.report_dir.absolute()}:/scanner/wrk:rw",
     ]
 
-    # Dockerネットワーク指定
-    if config.network_name:
-        cmd.extend(["--network", config.network_name])
+    # Dockerネットワーク指定（自動検出または手動指定）
+    network_name = config.network_name
+    if not network_name:
+        network_name = _detect_docker_network(config.target_url)
+
+    if network_name:
+        cmd.extend(["--network", network_name])
+        logger.info(f"Using Docker network: {network_name}")
+    else:
+        logger.info("No Docker network specified, using default networking")
 
     # 設定ディレクトリのマウント（automation用）
     config_dir = config.report_dir.parent / "scanner-config"

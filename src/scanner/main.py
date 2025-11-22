@@ -116,7 +116,9 @@ Examples:
         help="Maximum children per node (default: 20)",
     )
     scan_group.add_argument(
-        "--network", dest="network_name", help="Docker network name"
+        "--network",
+        dest="network_name",
+        help="Docker network name (auto-detected from target URL if not specified)",
     )
     scan_group.add_argument(
         "--report-dir",
@@ -276,7 +278,8 @@ if __name__ == "__main__":
         print("Scan Result:")
         print(f"{'=' * 60}")
         print(f"Status: {result['status']}")
-        print(f"Message: {result['message']}")
+        print(f"Exit Code: {result['exit_code']}")
+        print(f"Report Directory: {result['report_dir']}")
         print(f"{'=' * 60}\n")
 
         sys.exit(0)
