@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "prefect>=3.6.4",
+    "pyyaml>=6.0.1",
 ]
 
 [dependency-groups]
@@ -174,9 +175,9 @@ echo ""
 prefect server start --host 0.0.0.0
 """
 
-[tool.poe.tasks.prefect-flow]
+[tool.poe.tasks.prefect-example]
 help = "Run example Prefect flow"
-cmd = "python flows/example_flow.py"
+cmd = "python src/example/example_flow.py"
 
 [tool.poe.tasks.prefect-deploy]
 help = "Deploy Prefect flows"
@@ -205,6 +206,7 @@ cmd = "docker compose restart"
 # pytest設定
 # ========================================
 [tool.pytest.ini_options]
+pythonpath = ["."]
 testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
@@ -270,6 +272,9 @@ exclude = [
     "^.venv/",
     "^build/",
     "^dist/",
+    "^tests/",
+    "^tmp/",
+    "^resources/templates/",
 ]
 
 # サードパーティライブラリの型スタブがない場合
@@ -278,5 +283,7 @@ module = [
     "pytest.*",
     "pastel.*",
     "prefect.*",
+    "yaml.*",
+    "utils",
 ]
 ignore_missing_imports = true

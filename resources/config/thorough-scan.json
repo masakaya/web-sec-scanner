@@ -1,0 +1,43 @@
+{
+  "spider_config": {
+    "maxDuration": 60,
+    "maxDepth": 20,
+    "maxChildren": 50,
+    "acceptCookies": true,
+    "handleODataParametersVisited": true,
+    "parseComments": true,
+    "parseGit": true,
+    "parseRobotsTxt": true,
+    "parseSitemapXml": true,
+    "parseSVNEntries": true,
+    "postForm": true,
+    "processForm": true,
+    "requestWaitTime": 200,
+    "sendRefererHeader": true
+  },
+
+  "ajax_spider_config": {
+    "maxDuration": 60,
+    "maxCrawlDepth": 20,
+    "numberOfBrowsers": 4,
+    "inScopeOnly": true,
+    "clickDefaultElems": true,
+    "clickElemsOnce": false,
+    "randomInputs": true
+  },
+
+  "active_scan_config": {
+    "policy": "Default Policy",
+    "maxRuleDurationInMins": 30,
+    "maxScanDurationInMins": 120,
+    "addQueryParam": true,
+    "handleAntiCSRFTokens": true,
+    "injectPluginIdInHeader": true,
+    "scanHeadersAllRequests": true,
+    "threadPerHost": 8
+  },
+
+  "passive_scan_config": {
+    "maxDuration": 15
+  }
+}

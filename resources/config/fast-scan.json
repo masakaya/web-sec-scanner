@@ -1,0 +1,27 @@
+{
+  "spider_config": {
+    "maxDuration": 5,
+    "maxDepth": 5,
+    "maxChildren": 10,
+    "acceptCookies": true,
+    "parseComments": false,
+    "parseGit": false,
+    "parseRobotsTxt": true,
+    "parseSitemapXml": true,
+    "parseSVNEntries": false,
+    "postForm": true,
+    "processForm": true,
+    "requestWaitTime": 50
+  },
+
+  "active_scan_config": {
+    "policy": "Default Policy",
+    "maxRuleDurationInMins": 5,
+    "maxScanDurationInMins": 10,
+    "threadPerHost": 10
+  },
+
+  "passive_scan_config": {
+    "maxDuration": 2
+  }
+}

@@ -119,6 +119,73 @@ This project adheres to strict code quality standards:
 
 **When writing code, ensure it complies with both Ruff and mypy standards.**
 
+## Test Directory Structure
+
+**IMPORTANT: Test directory structure must mirror the source code directory structure.**
+
+### Rule
+
+- For every module in `src/`, create a corresponding test file in `tests/` with the same directory structure
+- Test file names should follow the pattern `test_<module_name>.py`
+- Each test file should have comprehensive unit tests for its corresponding module
+
+### Example
+
+If your source code structure is:
+
+```
+src/
+├── __init__.py
+├── example/
+│   ├── __init__.py
+│   └── example_flow.py
+└── scanner/
+    ├── __init__.py
+    ├── config.py
+    └── main.py
+```
+
+Your test structure should be:
+
+```
+tests/
+├── __init__.py
+├── example/
+│   ├── __init__.py
+│   └── test_example_flow.py
+└── scanner/
+    ├── __init__.py
+    ├── test_config.py
+    └── test_main.py
+```
+
+### Test Coverage Requirements
+
+- All new modules must have corresponding unit tests
+- Tests should cover:
+  - Normal cases (happy path)
+  - Edge cases (empty inputs, boundary values)
+  - Error cases (invalid inputs, exceptions)
+  - Different parameter combinations
+
+### Running Tests
+
+```bash
+# Run all tests
+uv run pytest
+
+# Run specific test file
+uv run pytest tests/scanner/test_config.py
+
+# Run with coverage
+uv run poe test-cov
+
+# Run tests verbosely
+uv run pytest -v
+```
+
+**Always create tests with matching directory structure when adding new source files.**
+
 ## Commit Message Convention
 
 **IMPORTANT: This project uses Conventional Commits for automatic versioning and CHANGELOG generation.**

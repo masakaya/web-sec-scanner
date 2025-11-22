@@ -11,3 +11,12 @@ services:
       - WEBWOLF_HOST=0.0.0.0
       - WEBWOLF_PORT=9090
     restart: unless-stopped
+
+  juice-shop:
+    image: bkimminich/juice-shop:latest
+    container_name: juice-shop
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=unsafe
+    restart: unless-stopped
