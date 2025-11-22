@@ -29,7 +29,7 @@ def scan_config(tmp_path):
 @pytest.fixture
 def mock_logger():
     """Create a mock logger."""
-    with patch("scanner.scanner.get_run_logger") as mock:
+    with patch("src.scanner.scanner.get_run_logger") as mock:
         yield mock.return_value
 
 
@@ -79,7 +79,7 @@ class TestDetectDockerNetwork:
         result = _detect_docker_network("https://example.com/test")
         assert result is None
 
-    @patch("scanner.scanner.subprocess.run")
+    @patch("src.scanner.scanner.subprocess.run")
     def test_container_name_detects_network(self, mock_run, mock_logger):
         """Test that container names trigger network detection."""
         mock_run.return_value = MagicMock(

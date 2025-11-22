@@ -100,12 +100,12 @@ def zap_spider(zap, target):
 
     # 認証済みユーザーとしてスパイダーを実行
     scan_id = zap.spider.scan_as_user(context_id, user_id, target, recurse=True)
-    print("Started spider as user (scan ID: {scan_id})")
+    print(f"Started spider as user (scan ID: {{scan_id}})")
 
     # スパイダーの完了を待つ
     import time
     while int(zap.spider.status(scan_id)) < 100:
-        print("Spider progress: {zap.spider.status(scan_id)}%")
+        print(f"Spider progress: {{zap.spider.status(scan_id)}}%")
         time.sleep(5)
 
     print("Spider completed as authenticated user")
@@ -139,8 +139,8 @@ def zap_tuned_bearer(zap):
     else:
         token_value = auth_token
 
-    print("Token header: {auth_header}")
-    print("Token value: {token_value[:20]}..." if len(token_value) > 20 else "Token value: {token_value}")
+    print(f"Token header: {{auth_header}}")
+    print(f"Token value: {{token_value[:20]}}..." if len(token_value) > 20 else f"Token value: {{token_value}}")
 
     # ZAP Replacer APIを使用してAuthorizationヘッダーを追加
     # すべてのリクエストにトークンヘッダーを追加

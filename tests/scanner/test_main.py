@@ -26,11 +26,18 @@ class TestValidateScanConfig:
             logged_in_indicator=None,
             logged_out_indicator=None,
             session_method="cookie",
+            auth_token=None,
+            auth_header="Authorization",
+            token_prefix="Bearer",
             ajax_spider=False,
             max_duration=30,
             max_depth=10,
             max_children=20,
+            thread_per_host=10,
+            hosts_per_scan=5,
             network_name=None,
+            language="ja_JP",
+            config_file=None,
             report_dir=None,
         )
 
@@ -55,11 +62,18 @@ class TestValidateScanConfig:
             logged_in_indicator="Logout",
             logged_out_indicator=None,
             session_method="cookie",
+            auth_token=None,
+            auth_header="Authorization",
+            token_prefix="Bearer",
             ajax_spider=True,
             max_duration=60,
             max_depth=15,
             max_children=30,
+            thread_per_host=10,
+            hosts_per_scan=5,
             network_name="test_network",
+            language="ja_JP",
+            config_file=None,
             report_dir=Path("/tmp/reports"),
         )
 
@@ -88,11 +102,18 @@ class TestValidateScanConfig:
             logged_in_indicator=None,
             logged_out_indicator=None,
             session_method="cookie",
+            auth_token=None,
+            auth_header="Authorization",
+            token_prefix="Bearer",
             ajax_spider=False,
             max_duration=30,
             max_depth=10,
             max_children=20,
+            thread_per_host=10,
+            hosts_per_scan=5,
             network_name=None,
+            language="ja_JP",
+            config_file=None,
             report_dir=custom_dir,
         )
 
@@ -114,11 +135,18 @@ class TestValidateScanConfig:
             logged_in_indicator=None,
             logged_out_indicator=None,
             session_method="cookie",
+            auth_token=None,
+            auth_header="Authorization",
+            token_prefix="Bearer",
             ajax_spider=False,
             max_duration=30,
             max_depth=10,
             max_children=20,
+            thread_per_host=10,
+            hosts_per_scan=5,
             network_name=None,
+            language="ja_JP",
+            config_file=None,
             report_dir=None,
         )
 
@@ -131,7 +159,7 @@ class TestSecurityScanFlow:
     """security_scan_flowフローのテストクラス。"""
 
     def test_security_scan_flow_returns_pending_status(self):
-        """スキャンフローが保留ステータスを返すことをテスト。"""
+        """スキャンフローが実行ステータスを返すことをテスト。"""
         config = ScanConfig(
             scan_type="baseline",
             target_url="http://example.com",
@@ -140,9 +168,10 @@ class TestSecurityScanFlow:
         result = security_scan_flow(config)
 
         assert isinstance(result, dict)
-        assert result["status"] == "pending"
+        assert result["status"] in ["completed", "failed"]
         assert "config" in result
-        assert "message" in result
+        assert "exit_code" in result
+        assert "report_dir" in result
 
     def test_security_scan_flow_includes_config(self):
         """スキャンフローの結果に設定が含まれることをテスト。"""
@@ -152,6 +181,7 @@ class TestSecurityScanFlow:
             username="admin",
             password="secret",
             auth_type="form",
+            login_url="https://example.com/login",
         )
 
         result = security_scan_flow(config)
