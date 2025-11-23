@@ -162,7 +162,35 @@ uv run poe scan -- <scan_type> <target_url> [オプション]
 | `--report-dir` | レポート保存ディレクトリ | `./report` | `--report-dir /tmp/reports` |
 | `--language` | スキャナーとレポートの言語 | `ja_JP` | `--language en_US` |
 | `--config-file` | スキャン設定プリセットファイル | なし | `--config-file resources/config/fast-scan.json` |
-| `--addon` | ZAP AddOn（複数指定可能） | authhelper, ascanrules, bruteforce, spiderAjax, sqliplugin | `--addon jwt --addon graphql` |
+| `--addon` | ZAP AddOn（複数指定可能） | authhelper, ascanrules, bruteforce, spiderAjax, sqliplugin, accessControl | `--addon jwt --addon graphql` |
+
+#### ZAPアドオン
+
+本スキャナーは、OWASP ZAPの機能を拡張するアドオン（AddOn）を使用します。デフォルトで以下のアドオンが自動インストールされます：
+
+| アドオン | 説明 | 用途 |
+|---------|------|------|
+| **authhelper** | Authentication Helper | ブラウザベースの認証、セッション管理の自動検出、環境変数認証サポート |
+| **ascanrules** | Active Scan Rules | OWASP Top 10カバレッジを含む脆弱性検出ルール |
+| **bruteforce** | Brute Force Detection | ブルートフォース攻撃検出、パスワード攻撃識別 |
+| **spiderAjax** | AJAX Spider | JavaScript多用サイトのクローリング（`--ajax-spider`に必要） |
+| **sqliplugin** | Advanced SQL Injection Scanner | SQLMap技術ベースの高度なSQLインジェクション検出 |
+| **accessControl** | Access Control Testing | アクセス制御脆弱性テスト、認証/認可問題の識別 |
+
+**Authentication Helper AddOnの特徴**:
+- **ブラウザベース認証**: 実際のブラウザを使用した認証フロー（フォーム認証に対応）
+- **自動検出**: セッション管理とログイン状態の自動検出によりエラー削減
+- **環境変数サポート**: Bearer/JWT認証に対応
+- **ZAP公式サポート**: ZAPチームによりメンテナンスされた標準手法
+
+**カスタムアドオンの追加**:
+```bash
+# デフォルトアドオンに加えてJWT/GraphQLサポートを追加
+uv run poe fast-scan -- http://example.com --addon jwt --addon graphql
+
+# 特定のアドオンのみを使用（デフォルトを置き換え）
+uv run poe scan -- automation http://example.com --addon jwt
+```
 
 #### スキャン設定プリセット
 
