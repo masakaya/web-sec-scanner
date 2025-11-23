@@ -91,6 +91,15 @@ Juice ShopはモダンなSPA（Single Page Application）として実装され�
 | `api` | APIスキャン | REST API専用 |
 | `automation` | Automation Framework | カスタム設定ファイルによる柔軟なスキャン |
 
+**スキャンタイプと設定ファイルの関係**
+
+| タイプ | `--config-file` | 制御方法 |
+|--------|----------------|---------|
+| `baseline` | **使用不可** | コマンドライン引数のみで制御 |
+| `full` | **使用不可** | コマンドライン引数のみで制御 |
+| `api` | **使用不可** | コマンドライン引数のみで制御 |
+| `automation` | **使用可能** | 設定ファイル（fast-scan.json、thorough-scan.json）で詳細設定が可能。未指定時はデフォルト設定で動作 |
+
 #### 認証オプション
 
 | 引数 | 説明 | 例 |
