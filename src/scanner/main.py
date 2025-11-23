@@ -305,7 +305,19 @@ def security_scan_flow(config: ScanConfig) -> dict:
 
     # 結果の返却
     status = "completed" if exit_code == 0 else "failed"
-    logger.info(f"Scan {status} with exit code: {exit_code}")
+    logger.info(f"Scan {status} with exit_code: {exit_code}")
+
+    # スキャン失敗時、空のディレクトリを削除
+    if exit_code != 0:
+        try:
+            # ディレクトリが空かどうかをチェック
+            if config.report_dir.exists() and not any(config.report_dir.iterdir()):
+                import shutil
+
+                shutil.rmtree(config.report_dir)
+                logger.info(f"Removed empty report directory: {config.report_dir}")
+        except Exception as e:
+            logger.warning(f"Failed to remove empty directory: {e}")
 
     return {
         "status": status,
