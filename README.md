@@ -162,7 +162,7 @@ uv run poe scan -- <scan_type> <target_url> [オプション]
 | `--report-dir` | レポート保存ディレクトリ | `./report` | `--report-dir /tmp/reports` |
 | `--language` | スキャナーとレポートの言語 | `ja_JP` | `--language en_US` |
 | `--config-file` | スキャン設定プリセットファイル | なし | `--config-file resources/config/fast-scan.json` |
-| `--addon` | ZAP AddOn（複数指定可能） | authhelper, ascanrules, bruteforce, spiderAjax, sqliplugin, accessControl | `--addon jwt --addon graphql` |
+| `--addon` | ZAP AddOn（複数指定可能） | authhelper, ascanrules, bruteforce, spiderAjax, sqliplugin | `--addon jwt --addon graphql` |
 
 #### ZAPアドオン
 
@@ -175,7 +175,6 @@ uv run poe scan -- <scan_type> <target_url> [オプション]
 | **bruteforce** | Brute Force Detection | ブルートフォース攻撃検出、パスワード攻撃識別 |
 | **spiderAjax** | AJAX Spider | JavaScript多用サイトのクローリング（`--ajax-spider`に必要） |
 | **sqliplugin** | Advanced SQL Injection Scanner | SQLMap技術ベースの高度なSQLインジェクション検出 |
-| **accessControl** | Access Control Testing | アクセス制御脆弱性テスト、認証/認可問題の識別 |
 
 **Authentication Helper AddOnの特徴**:
 - **ブラウザベース認証**: 実際のブラウザを使用した認証フロー（フォーム認証に対応）
