@@ -165,7 +165,7 @@ Examples:
         "--addon",
         action="append",
         dest="addons",
-        help="ZAP AddOn to install (can be used multiple times, e.g., --addon jwt --addon graphql). Default: authhelper, ascanrules, bruteforce, spiderAjax, sqliplugin, accessControl",
+        help="ZAP AddOn to install (can be used multiple times, e.g., --addon jwt --addon graphql). Default: authhelper, ascanrules, bruteforce, spiderAjax, sqliplugin",
     )
 
     args = parser.parse_args()
@@ -220,7 +220,6 @@ def validate_scan_config(args: argparse.Namespace) -> ScanConfig:
             "bruteforce",
             "spiderAjax",
             "sqliplugin",
-            "accessControl",
         ],
         report_dir=args.report_dir or Path.cwd() / "report",
     )

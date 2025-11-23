@@ -79,9 +79,8 @@ class ScanConfig(BaseModel):
             "bruteforce",
             "spiderAjax",
             "sqliplugin",
-            "accessControl",
         ],
-        description="ZAP AddOns to install (e.g., authhelper, ascanrules, bruteforce, spiderAjax, sqliplugin, accessControl, jwt, graphql, soap)",
+        description="ZAP AddOns to install (e.g., authhelper, ascanrules, bruteforce, spiderAjax, sqliplugin, jwt, graphql, soap)",
     )
 
     # Output directory
