@@ -15,23 +15,6 @@ Modern Python Webセキュリティスキャナー - Prefectワークフロー�
 WebSecScannerは、Webアプリケーションのセキュリティ脆弱性を検出するための最新のPythonベーススキャナーです。
 Prefectによるワークフローオーケストレーションと、WebGoatによる実践的なテスト環境を統合しています。
 
-### 主な特徴
-
-- ✅ **高速パッケージ管理**: [uv](https://github.com/astral-sh/uv) による爆速の依存関係管理
-- ✅ **自動コード品質チェック**: Ruff による linting とフォーマット
-- ✅ **静的型チェック**: mypy による型安全性の保証
-- ✅ **自動テスト**: pytest + カバレッジレポート
-- ✅ **タスクランナー**: Poe the Poet による統一されたコマンド
-- ✅ **ワークフローオーケストレーション**: Prefect によるタスク管理と監視
-- ✅ **テスト環境**: WebGoat によるセキュリティテスト環境
-- ✅ **コミットメッセージ強制**: gitlint による Conventional Commits 検証
-- ✅ **自動バージョニング**: release-please による自動リリース管理
-- ✅ **ブランチ自動プロモーション**: main → staging → production の自動PR作成
-- ✅ **コンフリクト自動解決**: プロモーション時のコンフリクトを自動解決
-- ✅ **GitHub Actions 統合**: reviewdog による自動コードレビュー
-- ✅ **自動フォーマット**: PR時に自動的にコード整形＋コミット
-- ✅ **依存関係自動更新**: Renovate による定期的な依存関係更新
-
 ---
 
 ## 🚀 クイックスタート
@@ -78,72 +61,6 @@ uv run poe webgoat-stop
 
 WebGoatは意図的に脆弱性を含んだWebアプリケーションで、セキュリティ診断ツールでスキャンしてレポートを生成するためのテスト対象として使用します。
 詳細は [docs/WEBGOAT.md](docs/WEBGOAT.md) を参照してください。
-
-### Bearer/JWT認証によるセキュリティスキャン
-
-最新のSPA（Single Page Application）で広く使われるBearer/JWT認証に対応したセキュリティスキャンが可能です。
-
-#### 準備
-
-```bash
-# Juice Shop起動（JWT認証のテスト環境）
-docker compose up -d juice-shop
-
-# JWTトークンを取得（ヘルパースクリプト使用）
-./scripts/get-juice-shop-token.sh
-```
-
-#### スキャン実行例
-
-```bash
-# 1. 高速スキャン（Automation Framework）- 約3分
-export JWT_TOKEN='your-jwt-token-here'
-PYTHONPATH=src uv run python -m scanner.main automation http://juice-shop:3000 \
-  --auth-type bearer \
-  --auth-token "$JWT_TOKEN" \
-  --network web-sec-scanner_default \
-  --config-file resources/config/fast-scan.json \
-  --max-duration 3
-
-# 2. フルスキャン - 約10-15分（※Bearer認証は現在automation/apiスキャンのみ対応）
-# PYTHONPATH=src uv run python -m scanner.main full http://juice-shop:3000 \
-#   --auth-type bearer \
-#   --auth-token "$JWT_TOKEN" \
-#   --network web-sec-scanner_default \
-#   --ajax-spider \
-#   --max-duration 10
-
-# 3. APIスキャン - 約5-10分
-PYTHONPATH=src uv run python -m scanner.main api http://juice-shop:3000 \
-  --auth-type bearer \
-  --auth-token "$JWT_TOKEN" \
-  --network web-sec-scanner_default \
-  --max-duration 10
-```
-
-#### スキャン結果の確認
-
-スキャン完了後、`report/` ディレクトリにレポートが生成されます：
-
-```bash
-# レポート一覧
-ls -lh report/
-
-# HTMLレポートをブラウザで開く
-xdg-open report/<scan-directory>/scan-report.html  # Linux
-open report/<scan-directory>/scan-report.html      # macOS
-```
-
-#### 対応する認証方式
-
-| 認証方式 | パラメータ | 用途 |
-|---------|-----------|------|
-| **Bearer** | `--auth-type bearer --auth-token <token>` | JWT/API Token認証（SPA、REST API） |
-| **Form** | `--auth-type form --username <user> --password <pass>` | フォームベース認証 |
-| **JSON** | `--auth-type json --username <user> --password <pass>` | JSON APIログイン |
-| **Basic** | `--auth-type basic --username <user> --password <pass>` | Basic認証 |
-
-詳細な使い方とトラブルシューティングは [docs/JUICE_SHOP.md](docs/JUICE_SHOP.md) を参照してください。
 
 ### セキュリティスキャン コマンドライン引数リファレンス
 
@@ -260,6 +177,63 @@ xdg-open report/fast-*/scan-report.html
 # macOS
 open report/fast-*/scan-report.html
 ```
+
+### Bearer/JWT認証によるセキュリティスキャン
+
+最新のSPA（Single Page Application）で広く使われるBearer/JWT認証に対応したセキュリティスキャンが可能です。
+
+#### 準備
+
+```bash
+# Juice Shop起動（JWT認証のテスト環境）
+docker compose up -d juice-shop
+
+# JWTトークンを取得（ヘルパースクリプト使用）
+./scripts/get-juice-shop-token.sh
+```
+
+#### スキャン実行例
+
+```bash
+# 1. 高速スキャン（Automation Framework）- 約3分
+export JWT_TOKEN='your-jwt-token-here'
+PYTHONPATH=src uv run python -m scanner.main automation http://juice-shop:3000 \
+  --auth-type bearer \
+  --auth-token "$JWT_TOKEN" \
+  --network web-sec-scanner_default \
+  --config-file resources/config/fast-scan.json \
+  --max-duration 3
+
+# 2. フルスキャン - 約10-15分（※Bearer認証は現在automation/apiスキャンのみ対応）
+# PYTHONPATH=src uv run python -m scanner.main full http://juice-shop:3000 \
+#   --auth-type bearer \
+#   --auth-token "$JWT_TOKEN" \
+#   --network web-sec-scanner_default \
+#   --ajax-spider \
+#   --max-duration 10
+
+# 3. APIスキャン - 約5-10分
+PYTHONPATH=src uv run python -m scanner.main api http://juice-shop:3000 \
+  --auth-type bearer \
+  --auth-token "$JWT_TOKEN" \
+  --network web-sec-scanner_default \
+  --max-duration 10
+```
+
+#### スキャン結果の確認
+
+スキャン完了後、`report/` ディレクトリにレポートが生成されます：
+
+```bash
+# レポート一覧
+ls -lh report/
+
+# HTMLレポートをブラウザで開く
+xdg-open report/<scan-directory>/scan-report.html  # Linux
+open report/<scan-directory>/scan-report.html      # macOS
+```
+
+詳細な使い方とトラブルシューティングは [docs/JUICE_SHOP.md](docs/JUICE_SHOP.md) を参照してください。
 
 ---
 
