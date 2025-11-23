@@ -528,57 +528,6 @@ requires-python = ">=3.12"
 
 ---
 
-## 📝 タスクコマンド一覧
-
-```bash
-# Linting
-poe lint              # チェックのみ
-poe lint-fix          # 自動修正
-poe lint-unsafe       # 安全でない修正も実行
-
-# フォーマット
-poe format            # フォーマット実行
-poe format-check      # チェックのみ
-
-# 型チェック
-poe typecheck         # 全体チェック
-poe typecheck <file>  # 特定ファイル
-poe typecheck-strict  # 厳格モード
-poe typecheck-review  # reviewdogで確認
-
-# テスト
-poe test              # テスト実行
-poe test-cov          # カバレッジ付き
-poe test-verbose      # 詳細出力
-
-# Prefect
-poe prefect-server    # Prefectサーバー起動（IP自動検出、外部アクセス可能）
-poe prefect-example   # サンプルフロー実行
-poe prefect-deploy    # フローデプロイ
-
-# WebGoat
-poe webgoat-start     # WebGoat起動
-poe webgoat-stop      # WebGoat停止
-poe webgoat-logs      # WebGoatログ表示
-poe webgoat-restart   # WebGoat再起動
-
-# reviewdog（ローカル）
-poe review-local      # Ruff reviewdog
-poe typecheck-review  # mypy reviewdog
-
-# 統合
-poe check             # 全チェック
-poe fix               # 自動修正可能なもの全て
-poe ci                # CI用チェック
-
-# その他
-poe clean             # キャッシュ削除
-poe install           # 依存関係インストール
-poe update            # 依存関係更新
-```
-
----
-
 ## 🤝 コントリビューション
 
 このテンプレートの改善提案は Issue または Pull Request でお願いします。
