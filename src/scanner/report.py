@@ -105,11 +105,42 @@ def convert_zap_to_report_data(zap_data: dict[str, Any]) -> dict[str, Any]:
     summary_data.sort(key=lambda x: severity_order.get(x["risk"], 4))
     report_alerts.sort(key=lambda x: severity_order.get(x["risk"], 4))
 
+    # Calculate security score and grade
+    high_count = sum(1 for item in summary_data if item["risk"] == "High")
+    medium_count = sum(1 for item in summary_data if item["risk"] == "Medium")
+    low_count = sum(1 for item in summary_data if item["risk"] == "Low")
+
+    # Score calculation: 100 - (High×10 + Medium×3 + Low×1)
+    score = max(0, 100 - (high_count * 10 + medium_count * 3 + low_count * 1))
+
+    # Grade determination
+    if score >= 80:
+        grade = "A"
+        grade_color = "green"
+    elif score >= 60:
+        grade = "B"
+        grade_color = "blue"
+    elif score >= 40:
+        grade = "C"
+        grade_color = "yellow"
+    elif score >= 20:
+        grade = "D"
+        grade_color = "orange"
+    elif score >= 1:
+        grade = "E"
+        grade_color = "red"
+    else:  # score == 0
+        grade = "F"
+        grade_color = "red"
+
     return {
         "site": site_name,
         "date": generated,
         "summary": summary_data,
         "alerts": report_alerts,
+        "score": score,
+        "grade": grade,
+        "grade_color": grade_color,
     }
 
 
