@@ -59,6 +59,38 @@ class TestCreateTimestampedReportDir:
         expected_prefix = "fast" if scan_config.scan_type == "automation" else scan_config.scan_type
         assert expected_prefix in report_subdir.name
 
+    def test_directory_name_from_config_file_fast(self, tmp_path, mock_logger):
+        """Test that directory name is derived from config file name (fast-scan.json)."""
+        from pathlib import Path
+
+        config_file = Path("resources/config/fast-scan.json")
+        config = ScanConfig(
+            scan_type="automation",
+            target_url="http://example.com",
+            report_dir=tmp_path / "report",
+            config_file=config_file,
+        )
+        report_subdir, _ = _create_timestamped_report_dir(config)
+
+        # fast-scan.jsonを使用した場合、ディレクトリ名は"fast-"で始まる
+        assert report_subdir.name.startswith("fast-")
+
+    def test_directory_name_from_config_file_thorough(self, tmp_path, mock_logger):
+        """Test that directory name is derived from config file name (thorough-scan.json)."""
+        from pathlib import Path
+
+        config_file = Path("resources/config/thorough-scan.json")
+        config = ScanConfig(
+            scan_type="automation",
+            target_url="http://example.com",
+            report_dir=tmp_path / "report",
+            config_file=config_file,
+        )
+        report_subdir, _ = _create_timestamped_report_dir(config)
+
+        # thorough-scan.jsonを使用した場合、ディレクトリ名は"thorough-"で始まる
+        assert report_subdir.name.startswith("thorough-")
+
 
 class TestDetectDockerNetwork:
     """Tests for _detect_docker_network function."""
