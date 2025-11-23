@@ -168,7 +168,7 @@ Examples:
         help="ZAP AddOn to install (can be used multiple times, e.g., --addon jwt --addon graphql). Default: authhelper, ascanrules, bruteforce, spiderAjax, sqliplugin",
     )
 
-    args = parser.parse_args()
+    args = parser.parse_intermixed_args()
     return args
 
 
