@@ -12,6 +12,7 @@ from prefect import flow, task
 from prefect.logging import get_run_logger
 
 from .config import ScanConfig
+from .report import generate_security_report
 from .scanner import (
     run_api_scan,
     run_automation_scan,
@@ -286,8 +287,11 @@ def security_scan_flow(config: ScanConfig) -> dict:
     logger.info(f"Target URL: {config.target_url}")
     logger.info(f"Authentication: {config.auth_type}")
 
-    # ディレクトリのセットアップ
-    setup_directories(config)
+    # ディレクトリのセットアップ（タイムスタンプ付きディレクトリを取得）
+    timestamped_report_dir = setup_directories(config)
+    # 設定のreport_dirを更新
+    config.report_dir = timestamped_report_dir
+    logger.info(f"Report will be saved to: {config.report_dir}")
 
     # スキャンタイプに応じたスキャン実行
     scan_tasks = {
@@ -319,12 +323,36 @@ if __name__ == "__main__":
         # セキュリティスキャンフローを実行
         result = security_scan_flow(config)
 
+        # スキャン完了後、HTMLレポートを生成
+        html_report_path = None
+        if result['exit_code'] == 0:
+            report_dir = Path(result['report_dir'])
+            json_report = report_dir / "scan-report.json"
+
+            if json_report.exists():
+                try:
+                    print(f"\n{'=' * 60}")
+                    print("Generating HTML Report...")
+                    print(f"{'=' * 60}")
+
+                    html_report_path = generate_security_report(json_report)
+
+                    print(f"✅ HTML Report generated: {html_report_path}")
+                    print(f"{'=' * 60}\n")
+                except Exception as e:
+                    print(f"⚠️  Failed to generate HTML report: {e}")
+                    print(f"{'=' * 60}\n")
+            else:
+                print(f"⚠️  JSON report not found: {json_report}\n")
+
         print(f"\n{'=' * 60}")
         print("Scan Result:")
         print(f"{'=' * 60}")
         print(f"Status: {result['status']}")
         print(f"Exit Code: {result['exit_code']}")
         print(f"Report Directory: {result['report_dir']}")
+        if html_report_path:
+            print(f"HTML Report: {html_report_path}")
         print(f"{'=' * 60}\n")
 
         sys.exit(0)

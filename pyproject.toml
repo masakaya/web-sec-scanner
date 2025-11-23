@@ -5,6 +5,7 @@ description = "Modern Python web security scanner with Prefect workflows and Web
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "jinja2>=3.1.2",
     "prefect>=3.6.4",
     "pyyaml>=6.0.1",
 ]
