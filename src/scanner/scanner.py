@@ -296,6 +296,29 @@ def _create_automation_config(
         {"type": "passiveScan-wait", "parameters": passive_scan_wait_params}
     )
 
+    # Active Scan Policy（sqliplugin設定があれば適用）
+    if scan_presets and "sqliplugin_config" in scan_presets:
+        sqliplugin_config = scan_presets["sqliplugin_config"]
+        if sqliplugin_config.get("enabled", True):
+            policy_params = {
+                "defaultStrength": sqliplugin_config.get("attackStrength", "MEDIUM"),
+                "defaultThreshold": sqliplugin_config.get("alertThreshold", "MEDIUM"),
+                "rules": [
+                    {
+                        "id": 40018,  # SQL Injection - MySQL
+                        "name": "SQL Injection - MySQL",
+                        "threshold": sqliplugin_config.get("alertThreshold", "MEDIUM"),
+                        "strength": sqliplugin_config.get("attackStrength", "MEDIUM"),
+                    }
+                ],
+            }
+            automation_config["jobs"].append(
+                {
+                    "type": "activeScan-policy",
+                    "parameters": policy_params,
+                }
+            )
+
     # Active Scan（設定の優先順位: プリセット < CLI引数/config）
     active_scan_params = {}
 

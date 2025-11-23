@@ -39,5 +39,11 @@
 
   "passive_scan_config": {
     "maxDuration": 15
+  },
+
+  "sqliplugin_config": {
+    "enabled": true,
+    "attackStrength": "HIGH",
+    "alertThreshold": "LOW"
   }
 }

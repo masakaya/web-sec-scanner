@@ -75,3 +75,8 @@ cp resources/config/fast-scan.json resources/config/my-custom-scan.json
 
 ### passive_scan_config
 - `maxDuration`: 最大待機時間（分）
+
+### sqliplugin_config
+- `enabled`: SQLインジェクションスキャナーを有効化（デフォルト: true）
+- `attackStrength`: 攻撃強度 (`LOW`, `MEDIUM`, `HIGH`, `INSANE`)
+- `alertThreshold`: アラート閾値 (`OFF`, `LOW`, `MEDIUM`, `HIGH`)
