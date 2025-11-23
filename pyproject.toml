@@ -202,6 +202,19 @@ cmd = "docker compose logs -f webgoat"
 help = "Restart WebGoat testing environment"
 cmd = "docker compose restart"
 
+# ----------------------------------------
+# Security Scanner
+# ----------------------------------------
+[tool.poe.tasks.scan]
+help = "Run security scanner (e.g., poe scan -- automation http://example.com --username admin)"
+script = "subprocess:run(['python', '-m', 'src.scanner.main'] + (argv or []))"
+
+[[tool.poe.tasks.scan.args]]
+name = "argv"
+positional = true
+multiple = true
+required = false
+
 # ========================================
 # pytest設定
 # ========================================
