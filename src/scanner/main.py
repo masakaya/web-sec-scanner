@@ -325,8 +325,8 @@ if __name__ == "__main__":
 
         # スキャン完了後、HTMLレポートを生成
         html_report_path = None
-        if result['exit_code'] == 0:
-            report_dir = Path(result['report_dir'])
+        if result["exit_code"] == 0:
+            report_dir = Path(result["report_dir"])
             json_report = report_dir / "scan-report.json"
 
             if json_report.exists():

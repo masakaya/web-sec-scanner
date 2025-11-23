@@ -2,6 +2,7 @@
 """
 Security scan report generator using Jinja2 templates
 """
+
 import json
 from pathlib import Path
 from typing import Any
@@ -91,9 +92,7 @@ def convert_zap_to_report_data(zap_data: dict[str, Any]) -> dict[str, Any]:
         report_alert = {
             "name": alert.get("alert", "Unknown Alert"),
             "risk": risk,
-            "description": alert.get("desc", "")
-            .replace("<p>", "")
-            .replace("</p>", ""),
+            "description": alert.get("desc", "").replace("<p>", "").replace("</p>", ""),
             "solution": alert.get("solution", "")
             .replace("<p>", "")
             .replace("</p>", ""),
@@ -132,9 +131,7 @@ def render_html_report(
 
 
 @flow(name="Generate Security Report")
-def generate_security_report(
-    json_path: Path, output_path: Path | None = None
-) -> Path:
+def generate_security_report(json_path: Path, output_path: Path | None = None) -> Path:
     """
     Generate HTML security report from ZAP JSON
 

@@ -2,6 +2,7 @@
 """
 DateTime utility functions for security scanner
 """
+
 from datetime import datetime, timedelta
 
 
