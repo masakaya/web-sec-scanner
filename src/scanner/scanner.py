@@ -53,24 +53,32 @@ def _create_timestamped_report_dir(config: ScanConfig) -> tuple[Path, str]:
 
 
 @task(name="setup-directories", description="ディレクトリセットアップ")
-def setup_directories(config: ScanConfig) -> None:
+def setup_directories(config: ScanConfig) -> Path:
     """スキャンに必要なディレクトリを作成する。
 
     Args:
         config: スキャン設定
 
+    Returns:
+        タイムスタンプ付きレポートディレクトリのパス
+
     """
     logger = get_run_logger()
 
+    # ベースディレクトリを作成
     config.report_dir.mkdir(parents=True, exist_ok=True)
-    # Dockerコンテナからの書き込みを可能にするため777に設定
     config.report_dir.chmod(0o777)
-    logger.info(f"Report directory created: {config.report_dir}")
+    logger.info(f"Base report directory created: {config.report_dir}")
+
+    # タイムスタンプ付きディレクトリを作成
+    timestamped_dir, _ = _create_timestamped_report_dir(config)
 
     # 設定ディレクトリも作成（認証スクリプト用）
     config_dir = config.report_dir.parent / "scanner-config"
     config_dir.mkdir(parents=True, exist_ok=True)
     logger.info(f"Config directory created: {config_dir}")
+
+    return timestamped_dir
 
 
 def load_scan_presets(config_file: Path) -> dict[str, Any]:
@@ -175,16 +183,12 @@ def _detect_docker_network(target_url: str) -> str | None:
 
 def _create_automation_config(
     config: ScanConfig,
-    report_subdir: Path,
-    timestamp: str,
     scan_presets: dict[str, Any] | None = None,
 ) -> Path:
     """Automation Framework用のYAML設定ファイルを作成する。
 
     Args:
         config: スキャン設定
-        report_subdir: タイムスタンプ付きレポートディレクトリ
-        timestamp: タイムスタンプ文字列
         scan_presets: 設定プリセット（オプション）
 
     Returns:
@@ -352,9 +356,7 @@ def _create_automation_config(
         {"type": "passiveScan-wait", "parameters": passive_scan_wait_params}
     )
 
-    # レポート生成（タイムスタンプディレクトリ内に出力）
-    # Dockerコンテナ内のパス: /scanner/wrk/{scan_type}-{timestamp}/
-    report_subdir_name = report_subdir.name
+    # レポート生成（マウントポイント直下に出力）
     for template, ext in [
         ("traditional-html", "html"),
         ("traditional-json", "json"),
@@ -365,7 +367,7 @@ def _create_automation_config(
                 "type": "report",
                 "parameters": {
                     "template": template,
-                    "reportDir": f"/scanner/wrk/{report_subdir_name}",
+                    "reportDir": "/scanner/wrk",
                     "reportFile": f"scan-report.{ext}",
                     "reportTitle": "Security Scanning Report",
                     "reportDescription": f"Target: {config.target_url}",
@@ -477,20 +479,16 @@ def run_baseline_scan(config: ScanConfig) -> int:
     logger = get_run_logger()
     logger.info("Running Baseline Scan...")
 
-    # タイムスタンプ付きディレクトリを作成
-    report_subdir, timestamp = _create_timestamped_report_dir(config)
-    report_subdir_name = report_subdir.name
-
     scan_cmd = [
         "zap-baseline.py",
         "-t",
         config.target_url,
         "-r",
-        f"{report_subdir_name}/scan-report.html",
+        "scan-report.html",
         "-J",
-        f"{report_subdir_name}/scan-report.json",
+        "scan-report.json",
         "-w",
-        f"{report_subdir_name}/scan-report.xml",
+        "scan-report.xml",
         "-l",
         "INFO",
         "-config",
@@ -504,7 +502,7 @@ def run_baseline_scan(config: ScanConfig) -> int:
 
     # JSONレポートのエンコーディングを修正
     if result.returncode in (0, 2):  # 成功または警告付き成功
-        _fix_json_encoding(report_subdir)
+        _fix_json_encoding(config.report_dir)
 
     return result.returncode
 
@@ -523,20 +521,16 @@ def run_full_scan(config: ScanConfig) -> int:
     logger = get_run_logger()
     logger.info("Running Full Scan...")
 
-    # タイムスタンプ付きディレクトリを作成
-    report_subdir, timestamp = _create_timestamped_report_dir(config)
-    report_subdir_name = report_subdir.name
-
     scan_cmd = [
         "zap-full-scan.py",
         "-t",
         config.target_url,
         "-r",
-        f"{report_subdir_name}/scan-report.html",
+        "scan-report.html",
         "-J",
-        f"{report_subdir_name}/scan-report.json",
+        "scan-report.json",
         "-w",
-        f"{report_subdir_name}/scan-report.xml",
+        "scan-report.xml",
         "-l",
         "INFO",
         "-d",
@@ -568,7 +562,7 @@ def run_full_scan(config: ScanConfig) -> int:
 
     # JSONレポートのエンコーディングを修正
     if result.returncode in (0, 2):  # 成功または警告付き成功
-        _fix_json_encoding(report_subdir)
+        _fix_json_encoding(config.report_dir)
 
     return result.returncode
 
@@ -587,20 +581,16 @@ def run_api_scan(config: ScanConfig) -> int:
     logger = get_run_logger()
     logger.info("Running API Scan...")
 
-    # タイムスタンプ付きディレクトリを作成
-    report_subdir, timestamp = _create_timestamped_report_dir(config)
-    report_subdir_name = report_subdir.name
-
     scan_cmd = [
         "zap-api-scan.py",
         "-t",
         config.target_url,
         "-r",
-        f"{report_subdir_name}/scan-report.html",
+        "scan-report.html",
         "-J",
-        f"{report_subdir_name}/scan-report.json",
+        "scan-report.json",
         "-w",
-        f"{report_subdir_name}/scan-report.xml",
+        "scan-report.xml",
         "-l",
         "INFO",
         "-f",
@@ -616,7 +606,7 @@ def run_api_scan(config: ScanConfig) -> int:
 
     # JSONレポートのエンコーディングを修正
     if result.returncode in (0, 2):  # 成功または警告付き成功
-        _fix_json_encoding(report_subdir)
+        _fix_json_encoding(config.report_dir)
 
     return result.returncode
 
@@ -677,16 +667,13 @@ def run_automation_scan(config: ScanConfig) -> int:
     logger = get_run_logger()
     logger.info("Running Automation Framework...")
 
-    # タイムスタンプ付きディレクトリを作成
-    report_subdir, timestamp = _create_timestamped_report_dir(config)
-
     # 設定プリセットを読み込み
     scan_presets = None
     if config.config_file:
         scan_presets = load_scan_presets(config.config_file)
 
     # Automation設定ファイルを作成
-    _ = _create_automation_config(config, report_subdir, timestamp, scan_presets)
+    _ = _create_automation_config(config, scan_presets)
 
     scan_cmd = [
         "zap.sh",
@@ -703,14 +690,14 @@ def run_automation_scan(config: ScanConfig) -> int:
     result = subprocess.run(docker_cmd)
 
     # レポートファイルが生成されているかチェック
-    html_report = report_subdir / "scan-report.html"
-    json_report = report_subdir / "scan-report.json"
+    html_report = config.report_dir / "scan-report.html"
+    json_report = config.report_dir / "scan-report.json"
     reports_exist = html_report.exists() or json_report.exists()
 
     # レポートが生成されている場合は成功とみなす
     if reports_exist:
-        logger.info(f"Reports successfully generated in {report_subdir}")
-        _fix_json_encoding(report_subdir)
+        logger.info(f"Reports successfully generated in {config.report_dir}")
+        _fix_json_encoding(config.report_dir)
         # ZAPの内部エラー（Exit Code 1）でもレポートが生成されていれば成功
         if result.returncode == 1:
             logger.warning(
@@ -720,5 +707,5 @@ def run_automation_scan(config: ScanConfig) -> int:
             return 0
         return result.returncode
     else:
-        logger.error(f"No reports generated in {report_subdir}")
+        logger.error(f"No reports generated in {config.report_dir}")
         return result.returncode
