@@ -145,6 +145,122 @@ open report/<scan-directory>/scan-report.html      # macOS
 
 詳細な使い方とトラブルシューティングは [docs/JUICE_SHOP.md](docs/JUICE_SHOP.md) を参照してください。
 
+### セキュリティスキャン コマンドライン引数リファレンス
+
+#### スキャンタイプ
+
+| タイプ | 説明 | 用途 |
+|--------|------|------|
+| `baseline` | 基本的な受動スキャン | 安全で高速な初期チェック |
+| `full` | 完全スキャン（Spider + Active Scan） | 徹底的な脆弱性検査 |
+| `api` | APIスキャン | REST API専用 |
+| `automation` | Automation Framework | カスタム設定ファイルによる柔軟なスキャン |
+
+#### 認証オプション
+
+| 引数 | 説明 | 例 |
+|------|------|-----|
+| `--auth-type` | 認証方式: `none`, `form`, `json`, `basic`, `bearer` | `--auth-type form` |
+| `--username` | ユーザー名 | `--username admin` |
+| `--password` | パスワード | `--password secret` |
+| `--login-url` | ログインエンドポイントURL | `--login-url http://example.com/login` |
+| `--username-field` | ユーザー名フィールド名 | `--username-field email` |
+| `--password-field` | パスワードフィールド名 | `--password-field passwd` |
+| `--logged-in-indicator` | ログイン成功を示す正規表現 | `--logged-in-indicator "Logout"` |
+| `--logged-out-indicator` | ログアウト状態を示す正規表現 | `--logged-out-indicator "Login"` |
+| `--session-method` | セッション管理方式: `cookie`, `http` | `--session-method cookie` |
+| `--auth-token` | Bearer トークン（JWT、API キーなど） | `--auth-token $JWT_TOKEN` |
+| `--auth-header` | トークン認証のヘッダー名 | `--auth-header Authorization` |
+| `--token-prefix` | トークンプレフィックス（`none` で無し） | `--token-prefix Bearer` |
+
+#### スキャンオプション
+
+| 引数 | 説明 | デフォルト | 例 |
+|------|------|-----------|-----|
+| `--ajax-spider` | AJAX Spider を有効化（JavaScript多用サイト向け） | 無効 | `--ajax-spider` |
+| `--max-duration` | 最大スキャン時間（分） | 30 | `--max-duration 60` |
+| `--max-depth` | 最大クロール深度 | 10 | `--max-depth 15` |
+| `--max-children` | ノードあたりの最大子要素数 | 20 | `--max-children 50` |
+| `--thread-per-host` | ホストあたりのスレッド数 | 10 | `--thread-per-host 8` |
+| `--hosts-per-scan` | 並列スキャンするホスト数 | 5 | `--hosts-per-scan 3` |
+| `--network` | Docker ネットワーク名（未指定時は自動検出） | 自動検出 | `--network webgoat_default` |
+| `--report-dir` | レポート保存ディレクトリ | `./report` | `--report-dir /tmp/reports` |
+| `--language` | スキャナーとレポートの言語 | `ja_JP` | `--language en_US` |
+| `--config-file` | スキャン設定プリセットファイル | なし | `--config-file resources/config/fast-scan.json` |
+| `--addon` | ZAP AddOn（複数指定可能） | authhelper, ascanrules, bruteforce, spiderAjax, sqliplugin | `--addon jwt --addon graphql` |
+
+#### スキャン設定プリセット
+
+| ファイル | 説明 | スキャン時間（目安） |
+|---------|------|---------------------|
+| `resources/config/fast-scan.json` | 高速スキャン（開発・CI向け） | 1-3分 |
+| `resources/config/thorough-scan.json` | 徹底的スキャン（本番前チェック） | 10-30分 |
+
+#### 実行例
+
+```bash
+# 1. 高速スキャン（WebGoat、フォーム認証）
+uv run python -m src.scanner.main automation http://webgoat:8080/WebGoat/ \
+  --username masakaya \
+  --password Password \
+  --auth-type form \
+  --login-url http://webgoat:8080/WebGoat/login \
+  --logged-in-indicator "Sign Out" \
+  --config-file resources/config/fast-scan.json
+
+# 2. 徹底的スキャン（WebGoat、フォーム認証）
+uv run python -m src.scanner.main automation http://webgoat:8080/WebGoat/ \
+  --username masakaya \
+  --password Password \
+  --auth-type form \
+  --login-url http://webgoat:8080/WebGoat/login \
+  --logged-in-indicator "Sign Out" \
+  --config-file resources/config/thorough-scan.json
+
+# 3. APIスキャン（Bearer認証）
+uv run python -m src.scanner.main api http://api.example.com \
+  --auth-type bearer \
+  --auth-token $JWT_TOKEN \
+  --max-duration 10
+
+# 4. フルスキャン（Basic認証、AJAX Spider有効）
+uv run python -m src.scanner.main full http://example.com \
+  --username admin \
+  --password secret \
+  --auth-type basic \
+  --ajax-spider \
+  --max-duration 30
+
+# 5. ベースラインスキャン（認証なし）
+uv run python -m src.scanner.main baseline http://example.com
+```
+
+#### レポート確認
+
+スキャン完了後、レポートディレクトリに以下の形式でレポートが生成されます：
+
+```bash
+report/
+├── fast-20251123_093000/          # fast-scan.json使用時
+│   ├── scan-report.html
+│   ├── scan-report.json
+│   └── scan-report.xml
+└── thorough-20251123_140000/      # thorough-scan.json使用時
+    ├── scan-report.html
+    ├── scan-report.json
+    └── scan-report.xml
+```
+
+HTMLレポートをブラウザで確認：
+
+```bash
+# Linux
+xdg-open report/fast-*/scan-report.html
+
+# macOS
+open report/fast-*/scan-report.html
+```
+
 ---
 
 ## 📝 コミットルール（必読）
