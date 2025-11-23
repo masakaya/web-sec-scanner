@@ -443,16 +443,17 @@ def _build_docker_command(config: ScanConfig, scan_command: list) -> list:
             f"Using ZAP environment variable authentication: {config.auth_header}"
         )
 
-    # スキャナーイメージとコマンド
+    # スキャナーイメージ
     cmd.append("ghcr.io/zaproxy/zaproxy:stable")
 
-    # AddOnのインストール
+    # スキャンコマンド
+    cmd.extend(scan_command)
+
+    # AddOnのインストール（zap.shの後に追加）
     if config.addons:
         for addon in config.addons:
             cmd.extend(["-addoninstall", addon])
         logger.info(f"Installing ZAP AddOns: {', '.join(config.addons)}")
-
-    cmd.extend(scan_command)
 
     return cmd
 
