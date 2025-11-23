@@ -328,3 +328,14 @@ coverage.xml
 .mypy_cache/
 .dmypy.json
 dmypy.json
+
+# Temporary files and scratch work
+tmp/
+
+# Scanner output directories
+report/
+scanner-config/
+
+# Prefect local files
+.prefectignore
+prefect.yaml
