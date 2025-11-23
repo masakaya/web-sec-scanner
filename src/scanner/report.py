@@ -110,8 +110,8 @@ def convert_zap_to_report_data(zap_data: dict[str, Any]) -> dict[str, Any]:
     medium_count = sum(1 for item in summary_data if item["risk"] == "Medium")
     low_count = sum(1 for item in summary_data if item["risk"] == "Low")
 
-    # Score calculation: 100 - (High×10 + Medium×3 + Low×1)
-    score = max(0, 100 - (high_count * 10 + medium_count * 3 + low_count * 1))
+    # Score calculation: 100 - (High×20 + Medium×3 + Low×1)
+    score = max(0, 100 - (high_count * 20 + medium_count * 3 + low_count * 1))
 
     # Grade determination
     if score >= 80:

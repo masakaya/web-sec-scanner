@@ -285,14 +285,13 @@ class TestConvertZapToReportData:
 
     def test_score_calculation_grade_a(self):
         """グレードA (80点以上) の計算をテスト。"""
-        # 80点: High×2 = -20点
+        # 80点: High×1 = -20点
         zap_data = {
             "site": [
                 {
                     "@name": "http://example.com",
                     "alerts": [
                         {"alert": "High1", "riskdesc": "High", "instances": []},
-                        {"alert": "High2", "riskdesc": "High", "instances": []},
                     ],
                 }
             ],
@@ -307,7 +306,7 @@ class TestConvertZapToReportData:
 
     def test_score_calculation_grade_b(self):
         """グレードB (60-79点) の計算をテスト。"""
-        # 70点: High×3 = -30点
+        # 60点: High×2 = -40点
         zap_data = {
             "site": [
                 {
@@ -315,7 +314,6 @@ class TestConvertZapToReportData:
                     "alerts": [
                         {"alert": "High1", "riskdesc": "High", "instances": []},
                         {"alert": "High2", "riskdesc": "High", "instances": []},
-                        {"alert": "High3", "riskdesc": "High", "instances": []},
                     ],
                 }
             ],
@@ -324,13 +322,13 @@ class TestConvertZapToReportData:
 
         result = convert_zap_to_report_data.fn(zap_data)
 
-        assert result["score"] == 70
+        assert result["score"] == 60
         assert result["grade"] == "B"
         assert result["grade_color"] == "blue"
 
     def test_score_calculation_grade_c(self):
         """グレードC (40-59点) の計算をテスト。"""
-        # 50点: High×5 = -50点
+        # 40点: High×3 = -60点
         zap_data = {
             "site": [
                 {
@@ -339,8 +337,6 @@ class TestConvertZapToReportData:
                         {"alert": "High1", "riskdesc": "High", "instances": []},
                         {"alert": "High2", "riskdesc": "High", "instances": []},
                         {"alert": "High3", "riskdesc": "High", "instances": []},
-                        {"alert": "High4", "riskdesc": "High", "instances": []},
-                        {"alert": "High5", "riskdesc": "High", "instances": []},
                     ],
                 }
             ],
@@ -349,13 +345,13 @@ class TestConvertZapToReportData:
 
         result = convert_zap_to_report_data.fn(zap_data)
 
-        assert result["score"] == 50
+        assert result["score"] == 40
         assert result["grade"] == "C"
         assert result["grade_color"] == "yellow"
 
     def test_score_calculation_grade_d(self):
         """グレードD (20-39点) の計算をテスト。"""
-        # 30点: High×7 = -70点
+        # 20点: High×4 = -80点
         zap_data = {
             "site": [
                 {
@@ -365,9 +361,6 @@ class TestConvertZapToReportData:
                         {"alert": "High2", "riskdesc": "High", "instances": []},
                         {"alert": "High3", "riskdesc": "High", "instances": []},
                         {"alert": "High4", "riskdesc": "High", "instances": []},
-                        {"alert": "High5", "riskdesc": "High", "instances": []},
-                        {"alert": "High6", "riskdesc": "High", "instances": []},
-                        {"alert": "High7", "riskdesc": "High", "instances": []},
                     ],
                 }
             ],
@@ -376,20 +369,24 @@ class TestConvertZapToReportData:
 
         result = convert_zap_to_report_data.fn(zap_data)
 
-        assert result["score"] == 30
+        assert result["score"] == 20
         assert result["grade"] == "D"
         assert result["grade_color"] == "orange"
 
     def test_score_calculation_grade_e(self):
         """グレードE (1-19点) の計算をテスト。"""
-        # 10点: High×9 = -90点
+        # 14点: High×4 + Medium×2 = -80-6 = -86点 → 100-86 = 14点
         zap_data = {
             "site": [
                 {
                     "@name": "http://example.com",
                     "alerts": [
-                        {"alert": f"High{i}", "riskdesc": "High", "instances": []}
-                        for i in range(9)
+                        {"alert": "High1", "riskdesc": "High", "instances": []},
+                        {"alert": "High2", "riskdesc": "High", "instances": []},
+                        {"alert": "High3", "riskdesc": "High", "instances": []},
+                        {"alert": "High4", "riskdesc": "High", "instances": []},
+                        {"alert": "Medium1", "riskdesc": "Medium", "instances": []},
+                        {"alert": "Medium2", "riskdesc": "Medium", "instances": []},
                     ],
                 }
             ],
@@ -398,20 +395,20 @@ class TestConvertZapToReportData:
 
         result = convert_zap_to_report_data.fn(zap_data)
 
-        assert result["score"] == 10
+        assert result["score"] == 14
         assert result["grade"] == "E"
         assert result["grade_color"] == "red"
 
     def test_score_calculation_grade_f(self):
         """グレードF (0点) の計算をテスト。"""
-        # 0点: High×10 = -100点
+        # 0点: High×5 = -100点
         zap_data = {
             "site": [
                 {
                     "@name": "http://example.com",
                     "alerts": [
                         {"alert": f"High{i}", "riskdesc": "High", "instances": []}
-                        for i in range(10)
+                        for i in range(5)
                     ],
                 }
             ],
@@ -426,7 +423,7 @@ class TestConvertZapToReportData:
 
     def test_score_calculation_mixed_severity(self):
         """複数の重要度が混在する場合の計算をテスト。"""
-        # 100 - (High×1×10 + Medium×2×3 + Low×4×1) = 100 - 20 = 80点
+        # 100 - (High×1×20 + Medium×2×3 + Low×4×1) = 100 - 30 = 70点
         zap_data = {
             "site": [
                 {
@@ -447,19 +444,19 @@ class TestConvertZapToReportData:
 
         result = convert_zap_to_report_data.fn(zap_data)
 
-        assert result["score"] == 80
-        assert result["grade"] == "A"
+        assert result["score"] == 70
+        assert result["grade"] == "B"
 
     def test_score_calculation_clamped_to_zero(self):
         """スコアが負になる場合、0にクランプされることをテスト。"""
-        # 100 - (High×20×10) = -100 → 0にクランプ
+        # 100 - (High×10×20) = -100 → 0にクランプ
         zap_data = {
             "site": [
                 {
                     "@name": "http://example.com",
                     "alerts": [
                         {"alert": f"High{i}", "riskdesc": "High", "instances": []}
-                        for i in range(20)
+                        for i in range(10)
                     ],
                 }
             ],
