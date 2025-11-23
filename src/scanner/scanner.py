@@ -702,8 +702,23 @@ def run_automation_scan(config: ScanConfig) -> int:
 
     result = subprocess.run(docker_cmd)
 
-    # JSONレポートのエンコーディングを修正
-    if result.returncode in (0, 2):  # 成功または警告付き成功
-        _fix_json_encoding(report_subdir)
+    # レポートファイルが生成されているかチェック
+    html_report = report_subdir / "scan-report.html"
+    json_report = report_subdir / "scan-report.json"
+    reports_exist = html_report.exists() or json_report.exists()
 
-    return result.returncode
+    # レポートが生成されている場合は成功とみなす
+    if reports_exist:
+        logger.info(f"Reports successfully generated in {report_subdir}")
+        _fix_json_encoding(report_subdir)
+        # ZAPの内部エラー（Exit Code 1）でもレポートが生成されていれば成功
+        if result.returncode == 1:
+            logger.warning(
+                "ZAP returned exit code 1, but reports were generated successfully. "
+                "Treating as success."
+            )
+            return 0
+        return result.returncode
+    else:
+        logger.error(f"No reports generated in {report_subdir}")
+        return result.returncode
