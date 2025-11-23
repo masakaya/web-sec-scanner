@@ -12,7 +12,7 @@ This document summarizes the migration from custom authentication hook scripts t
 
 #### Added CLI Support for AddOns
 - **New CLI argument**: `--addon` (repeatable)
-- **Default AddOns**: `authhelper`, `ascanrules`, `bruteforce`, `spiderAjax`
+- **Default AddOns**: `authhelper`, `ascanrules`, `bruteforce`, `spiderAjax`, `sqliplugin`, `accessControl`
 - **Example usage**:
   ```bash
   web-sec-scanner automation http://example.com --addon jwt --addon graphql
@@ -173,6 +173,16 @@ The scanner now installs these AddOns by default:
    - Modern web application support
    - Required for `--ajax-spider` functionality
 
+5. **sqliplugin** - Advanced SQL Injection Scanner
+   - Advanced SQL injection detection
+   - Derived from SQLMap techniques
+   - Beta status AddOn
+
+6. **accessControl** - Access Control Testing
+   - Tests for broken access control vulnerabilities
+   - Identifies authorization issues
+   - Critical for authentication/authorization testing
+
 Users can override or extend this list using `--addon`:
 ```bash
 # Add additional AddOns
@@ -252,12 +262,16 @@ Test updates required:
    - Added AJAX Spider to defaults
    - Ensures `--ajax-spider` functionality works consistently
 
+8. **Added sqliplugin and accessControl**
+   - Added Advanced SQL Injection Scanner for SQLi detection
+   - Added Access Control Testing for authorization issues
+
 ### 10. Usage Examples
 
 #### Basic scan with defaults
 ```bash
 web-sec-scanner baseline http://example.com
-# Installs: authhelper, ascanrules, bruteforce, spiderAjax
+# Installs: authhelper, ascanrules, bruteforce, spiderAjax, sqliplugin, accessControl
 ```
 
 #### Scan with custom AddOns
