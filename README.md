@@ -62,6 +62,24 @@ uv run poe webgoat-stop
 WebGoatは意図的に脆弱性を含んだWebアプリケーションで、セキュリティ診断ツールでスキャンしてレポートを生成するためのテスト対象として使用します。
 詳細は [docs/WEBGOAT.md](docs/WEBGOAT.md) を参照してください。
 
+### Juice Shopテスト環境（オプション）
+
+JWT/Bearer認証のテストには、Juice Shop環境を利用できます：
+
+```bash
+# Juice Shop起動
+docker compose up -d juice-shop
+
+# Juice Shop停止
+docker compose down juice-shop
+
+# JWTトークン取得（ヘルパースクリプト）
+./scripts/get-juice-shop-token.sh
+```
+
+Juice ShopはモダンなSPA（Single Page Application）として実装された脆弱性学習プラットフォームで、JWT/Bearer認証を使用したセキュリティスキャンのテスト対象として最適です。
+詳細は [docs/JUICE_SHOP.md](docs/JUICE_SHOP.md) を参照してください。
+
 ### セキュリティスキャン コマンドライン引数リファレンス
 
 #### スキャンタイプ
