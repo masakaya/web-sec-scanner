@@ -40,7 +40,7 @@ uv sync --all-groups
 uv run poe setup-hooks
 
 # WebGoatテスト環境を起動（オプション）
-uv run poe webgoat-start
+docker compose up -d
 
 # 開発準備完了！
 ```
@@ -53,10 +53,10 @@ uv run poe webgoat-start
 
 ```bash
 # WebGoat起動
-uv run poe webgoat-start
+docker compose up -d
 
 # WebGoat停止
-uv run poe webgoat-stop
+docker compose down
 ```
 
 WebGoatは意図的に脆弱性を含んだWebアプリケーションで、セキュリティ診断ツールでスキャンしてレポートを生成するためのテスト対象として使用します。
@@ -79,6 +79,37 @@ docker compose down juice-shop
 
 Juice ShopはモダンなSPA（Single Page Application）として実装された脆弱性学習プラットフォームで、JWT/Bearer認証を使用したセキュリティスキャンのテスト対象として最適です。
 詳細は [docs/JUICE_SHOP.md](docs/JUICE_SHOP.md) を参照してください。
+
+### スキャンコマンド
+
+本プロジェクトでは、セキュリティスキャンを実行するための便利なpoeタスクを提供しています。
+
+#### 推奨: プリセットを使用した高速実行
+
+最も簡単な方法は、プリセット設定を使用したpoeタスクです：
+
+```bash
+# 高速スキャン（1-3分、fast-scan.json使用）
+uv run poe fast-scan -- <target_url> [認証オプション]
+
+# 徹底的スキャン（10-30分、thorough-scan.json使用）
+uv run poe thorough-scan -- <target_url> [認証オプション]
+```
+
+**プリセットのメリット**：
+- Spider、Active Scan、Passive Scanの設定が最適化済み
+- 認証設定はコマンドライン引数で柔軟に指定可能
+- レポートディレクトリ名でスキャンタイプを識別しやすい（`fast-*`、`thorough-*`）
+
+#### 汎用スキャナー
+
+より細かい制御が必要な場合は、scanタスクを使用できます：
+
+```bash
+uv run poe scan -- <scan_type> <target_url> [オプション]
+```
+
+詳細な引数リファレンスは以下を参照してください。
 
 ### セキュリティスキャン コマンドライン引数リファレンス
 
@@ -144,39 +175,35 @@ Juice ShopはモダンなSPA（Single Page Application）として実装され�
 
 ```bash
 # 1. 高速スキャン（WebGoat、フォーム認証）
-uv run python -m src.scanner.main automation http://webgoat:8080/WebGoat/ \
+uv run poe fast-scan -- http://webgoat:8080/WebGoat/ \
   --username masakaya \
   --password Password \
   --auth-type form \
   --login-url http://webgoat:8080/WebGoat/login \
-  --logged-in-indicator "Sign Out" \
-  --config-file resources/config/fast-scan.json
+  --logged-in-indicator "Sign Out"
 
 # 2. 徹底的スキャン（WebGoat、フォーム認証）
-uv run python -m src.scanner.main automation http://webgoat:8080/WebGoat/ \
+uv run poe thorough-scan -- http://webgoat:8080/WebGoat/ \
   --username masakaya \
   --password Password \
   --auth-type form \
   --login-url http://webgoat:8080/WebGoat/login \
-  --logged-in-indicator "Sign Out" \
-  --config-file resources/config/thorough-scan.json
+  --logged-in-indicator "Sign Out"
 
-# 3. APIスキャン（Bearer認証）
-uv run python -m src.scanner.main api http://api.example.com \
+# 3. 高速スキャン（Juice Shop、Bearer認証）
+export JWT_TOKEN='your-jwt-token-here'
+uv run poe fast-scan -- http://juice-shop:3000 \
+  --auth-type bearer \
+  --auth-token "$JWT_TOKEN"
+
+# 4. 汎用スキャナー（APIスキャン、Bearer認証）
+uv run poe scan -- api http://api.example.com \
   --auth-type bearer \
   --auth-token $JWT_TOKEN \
   --max-duration 10
 
-# 4. フルスキャン（Basic認証、AJAX Spider有効）
-uv run python -m src.scanner.main full http://example.com \
-  --username admin \
-  --password secret \
-  --auth-type basic \
-  --ajax-spider \
-  --max-duration 30
-
-# 5. ベースラインスキャン（認証なし）
-uv run python -m src.scanner.main baseline http://example.com
+# 5. 汎用スキャナー（ベースラインスキャン、認証なし）
+uv run poe scan -- baseline http://example.com
 ```
 
 #### レポート確認
@@ -222,42 +249,22 @@ docker compose up -d juice-shop
 #### スキャン実行例
 
 ```bash
-# 1. 高速スキャン（Automation Framework）- 約3分
+# 1. 高速スキャン（fast-scan.json使用） - 約1-3分
 export JWT_TOKEN='your-jwt-token-here'
-PYTHONPATH=src uv run python -m scanner.main automation http://juice-shop:3000 \
+uv run poe fast-scan -- http://juice-shop:3000 \
+  --auth-type bearer \
+  --auth-token "$JWT_TOKEN"
+
+# 2. 徹底的スキャン（thorough-scan.json使用） - 約10-30分
+uv run poe thorough-scan -- http://juice-shop:3000 \
+  --auth-type bearer \
+  --auth-token "$JWT_TOKEN"
+
+# 3. 汎用スキャナー（APIスキャン） - 約5-10分
+uv run poe scan -- api http://juice-shop:3000 \
   --auth-type bearer \
   --auth-token "$JWT_TOKEN" \
-  --network web-sec-scanner_default \
-  --config-file resources/config/fast-scan.json \
-  --max-duration 3
-
-# 2. フルスキャン - 約10-15分（※Bearer認証は現在automation/apiスキャンのみ対応）
-# PYTHONPATH=src uv run python -m scanner.main full http://juice-shop:3000 \
-#   --auth-type bearer \
-#   --auth-token "$JWT_TOKEN" \
-#   --network web-sec-scanner_default \
-#   --ajax-spider \
-#   --max-duration 10
-
-# 3. APIスキャン - 約5-10分
-PYTHONPATH=src uv run python -m scanner.main api http://juice-shop:3000 \
-  --auth-type bearer \
-  --auth-token "$JWT_TOKEN" \
-  --network web-sec-scanner_default \
   --max-duration 10
-```
-
-#### スキャン結果の確認
-
-スキャン完了後、`report/` ディレクトリにレポートが生成されます：
-
-```bash
-# レポート一覧
-ls -lh report/
-
-# HTMLレポートをブラウザで開く
-xdg-open report/<scan-directory>/scan-report.html  # Linux
-open report/<scan-directory>/scan-report.html      # macOS
 ```
 
 詳細な使い方とトラブルシューティングは [docs/JUICE_SHOP.md](docs/JUICE_SHOP.md) を参照してください。
@@ -357,7 +364,8 @@ git commit --no-verify -m "message"
 | **mypy** | 静的型チェック | [docs/MYPY.md](docs/MYPY.md) |
 | **pytest** | テスティング | [docs/TESTING.md](docs/TESTING.md) |
 | **Prefect** | ワークフローオーケストレーション | [docs/PREFECT.md](docs/PREFECT.md) |
-| **WebGoat** | セキュリティテスト環境 | [docs/WEBGOAT.md](docs/WEBGOAT.md) |
+| **WebGoat** | セキュリティテスト環境（フォーム認証） | [docs/WEBGOAT.md](docs/WEBGOAT.md) |
+| **Juice Shop** | セキュリティテスト環境（JWT/Bearer認証） | [docs/JUICE_SHOP.md](docs/JUICE_SHOP.md) |
 | **Renovate** | 依存関係自動更新 | [docs/RENOVATE.md](docs/RENOVATE.md) |
 
 ### タスク管理
