@@ -34,8 +34,13 @@ def _create_timestamped_report_dir(config: ScanConfig) -> tuple[Path, str]:
     # タイムスタンプを生成
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-    # ディレクトリ名のプレフィックスを決定（automationは"fast"に変更）
-    dir_prefix = "fast" if config.scan_type == "automation" else config.scan_type
+    # ディレクトリ名のプレフィックスを決定
+    if config.config_file:
+        # 設定ファイル名から名前を抽出（例：fast-scan.json → fast, thorough-scan.json → thorough）
+        dir_prefix = config.config_file.stem.replace("-scan", "")
+    else:
+        # 設定ファイルが指定されていない場合、スキャンタイプから決定
+        dir_prefix = "fast" if config.scan_type == "automation" else config.scan_type
     report_subdir = config.report_dir / f"{dir_prefix}-{timestamp}"
 
     # ディレクトリを作成
