@@ -354,7 +354,7 @@ git commit --no-verify -m "message"
 
 ---
 
-## 🛠️ 利用可能なツール
+## 📚 ドキュメント
 
 ### コード品質
 
@@ -377,63 +377,14 @@ git commit --no-verify -m "message"
 poe
 
 # よく使うコマンド
-poe lint           # Ruff linting
-poe format         # コードフォーマット
-poe typecheck      # 型チェック
-poe test           # テスト実行
-poe check          # 全チェック実行
-poe prefect-server # Prefectサーバー起動（IP自動検出、外部アクセス可能）
+poe lint              # Ruff linting
+poe format            # コードフォーマット
+poe typecheck         # 型チェック
+poe test              # テスト実行
+poe check             # 全チェック実行
+poe prefect-server    # Prefectサーバー起動（IP自動検出、外部アクセス可能）
 poe prefect-example   # Prefectサンプルフロー実行
-poe webgoat-start  # WebGoat起動
-poe webgoat-stop   # WebGoat停止
 ```
-
----
-
-## 📚 ドキュメント
-
-各ツールの詳細な使い方とベストプラクティスは、以下のドキュメントを参照してください：
-
-### Ruff（コード品質）
-**[docs/RUFF.md](docs/RUFF.md)**
-- Ruffの基本的な使い方
-- IDE統合（VSCode、PyCharmなど）
-- コマンドライン実行
-- GitHub Actions 自動フォーマット
-- reviewdog 連携
-
-### mypy（型チェック）
-**[docs/MYPY.md](docs/MYPY.md)**
-- mypyの概要とメリット
-- 型チェックの実行方法
-- 型アノテーションの書き方
-- 段階的な型導入
-- よくあるエラーと対処法
-- GitHub Actions 統合
-
-### pytest（テスト）
-**[docs/TESTING.md](docs/TESTING.md)**
-- テストの書き方
-- テスト実行方法
-- カバレッジレポート
-- マーカーの使い方
-- ベストプラクティス
-
-### Prefect（ワークフローオーケストレーション）
-**[docs/PREFECT.md](docs/PREFECT.md)**
-- Prefectの基本的な使い方
-- フローとタスクの定義
-- スケジュール実行
-- ダッシュボードの使い方
-- ベストプラクティス
-
-### WebGoat（セキュリティテスト環境）
-**[docs/WEBGOAT.md](docs/WEBGOAT.md)**
-- WebGoatの基本的な使い方
-- テスト環境の起動・停止
-- セキュリティ診断ツールとの連携
-- レポート出力のテスト方法
-- セキュリティ上の注意事項
 
 ---
 
