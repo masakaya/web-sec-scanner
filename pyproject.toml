@@ -207,7 +207,7 @@ cmd = "docker compose restart"
 # ----------------------------------------
 [tool.poe.tasks.scan]
 help = "Run security scanner (e.g., poe scan -- automation http://example.com --username admin)"
-script = "subprocess:run(['python', '-m', 'src.scanner.main'] + (argv or []))"
+cmd = "bash scripts/scan.sh ${argv}"
 
 [[tool.poe.tasks.scan.args]]
 name = "argv"
@@ -217,7 +217,7 @@ required = false
 
 [tool.poe.tasks.fast-scan]
 help = "Run fast security scan with fast-scan.json preset (e.g., poe fast-scan -- http://example.com --username admin --password secret)"
-script = "subprocess:run(['python', '-m', 'src.scanner.main', 'automation', '--config-file', 'resources/config/fast-scan.json'] + (argv or []))"
+cmd = "bash scripts/fast-scan.sh ${argv}"
 
 [[tool.poe.tasks.fast-scan.args]]
 name = "argv"
@@ -227,7 +227,7 @@ required = false
 
 [tool.poe.tasks.thorough-scan]
 help = "Run thorough security scan with thorough-scan.json preset (e.g., poe thorough-scan -- http://example.com --username admin --password secret)"
-script = "subprocess:run(['python', '-m', 'src.scanner.main', 'automation', '--config-file', 'resources/config/thorough-scan.json'] + (argv or []))"
+cmd = "bash scripts/thorough-scan.sh ${argv}"
 
 [[tool.poe.tasks.thorough-scan.args]]
 name = "argv"
