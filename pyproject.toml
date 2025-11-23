@@ -215,6 +215,26 @@ positional = true
 multiple = true
 required = false
 
+[tool.poe.tasks.fast-scan]
+help = "Run fast security scan with fast-scan.json preset (e.g., poe fast-scan -- http://example.com --username admin --password secret)"
+script = "subprocess:run(['python', '-m', 'src.scanner.main', 'automation', '--config-file', 'resources/config/fast-scan.json'] + (argv or []))"
+
+[[tool.poe.tasks.fast-scan.args]]
+name = "argv"
+positional = true
+multiple = true
+required = false
+
+[tool.poe.tasks.thorough-scan]
+help = "Run thorough security scan with thorough-scan.json preset (e.g., poe thorough-scan -- http://example.com --username admin --password secret)"
+script = "subprocess:run(['python', '-m', 'src.scanner.main', 'automation', '--config-file', 'resources/config/thorough-scan.json'] + (argv or []))"
+
+[[tool.poe.tasks.thorough-scan.args]]
+name = "argv"
+positional = true
+multiple = true
+required = false
+
 # ========================================
 # pytest設定
 # ========================================
