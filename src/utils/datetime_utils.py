@@ -1,14 +1,11 @@
 #!/usr/bin/env python3
-"""
-DateTime utility functions for security scanner
-"""
+"""DateTime utility functions for security scanner."""
 
 from datetime import datetime, timedelta
 
 
 def get_timestamp_string() -> str:
-    """
-    Get current timestamp string for directory/file naming.
+    """Get current timestamp string for directory/file naming.
 
     Returns:
         Timestamp string in "YYYYMMDD_HHMMSS" format
@@ -17,13 +14,13 @@ def get_timestamp_string() -> str:
         >>> # Returns something like '20251123_103045'
         >>> get_timestamp_string()
         '20251123_103045'
+
     """
     return datetime.now().strftime("%Y%m%d_%H%M%S")
 
 
 def convert_utc_to_jst(utc_datetime_str: str) -> str:
-    """
-    Convert UTC datetime string to JST format
+    """Convert UTC datetime string to JST format.
 
     Args:
         utc_datetime_str: UTC datetime string (e.g., "2025-11-23T01:41:56.654958326Z")
@@ -36,6 +33,7 @@ def convert_utc_to_jst(utc_datetime_str: str) -> str:
         '2025/11/23 10:41:56'
         >>> convert_utc_to_jst("2025-11-23T01:41:56Z")
         '2025/11/23 10:41:56'
+
     """
     # Replace Z with +00:00 for ISO format compatibility
     utc_datetime_str = utc_datetime_str.replace("Z", "+00:00")

@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-"""
-Security scan report generator using Jinja2 templates
-"""
+"""Security scan report generator using Jinja2 templates."""
 
 import json
 from pathlib import Path
@@ -15,14 +13,15 @@ from src.utils.datetime_utils import convert_utc_to_jst
 
 @task(name="Load ZAP JSON Report")
 def load_zap_json(json_path: Path) -> dict[str, Any]:
-    """Load ZAP JSON report"""
+    """Load ZAP JSON report."""
     with open(json_path, encoding="utf-8") as f:
-        return json.load(f)
+        data: dict[str, Any] = json.load(f)
+        return data
 
 
 @task(name="Convert ZAP Data to Report Format")
 def convert_zap_to_report_data(zap_data: dict[str, Any]) -> dict[str, Any]:
-    """Convert ZAP JSON to report data format for Jinja2 template"""
+    """Convert ZAP JSON to report data format for Jinja2 template."""
     site_info = zap_data.get("site", [{}])[0]
     site_name = site_info.get("@name", "Unknown")
     alerts = site_info.get("alerts", [])
@@ -47,7 +46,7 @@ def convert_zap_to_report_data(zap_data: dict[str, Any]) -> dict[str, Any]:
         instances = alert.get("instances", [])
 
         # Count unique URLs affected
-        unique_urls = len(set(inst.get("uri", "") for inst in instances))
+        unique_urls = len({inst.get("uri", "") for inst in instances})
 
         # Create summary entry
         summary_entry = {
@@ -118,8 +117,8 @@ def convert_zap_to_report_data(zap_data: dict[str, Any]) -> dict[str, Any]:
 def render_html_report(
     report_data: dict[str, Any], template_dir: Path, output_path: Path
 ) -> Path:
-    """Render HTML report using Jinja2 template"""
-    env = Environment(loader=FileSystemLoader(template_dir))
+    """Render HTML report using Jinja2 template."""
+    env = Environment(loader=FileSystemLoader(template_dir), autoescape=True)
     template = env.get_template("report.html.j2")
 
     html_content = template.render(**report_data)
@@ -132,8 +131,7 @@ def render_html_report(
 
 @flow(name="Generate Security Report")
 def generate_security_report(json_path: Path, output_path: Path | None = None) -> Path:
-    """
-    Generate HTML security report from ZAP JSON
+    """Generate HTML security report from ZAP JSON.
 
     Args:
         json_path: Path to ZAP JSON report
@@ -141,6 +139,7 @@ def generate_security_report(json_path: Path, output_path: Path | None = None) -
 
     Returns:
         Path to generated HTML report
+
     """
     if output_path is None:
         # Use security-report.html to avoid conflict with ZAP's scan-report.html

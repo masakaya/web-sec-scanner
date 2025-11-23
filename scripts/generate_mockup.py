@@ -1,20 +1,18 @@
 #!/usr/bin/env python3
-"""
-Generate HTML mockup from ZAP JSON report
-"""
+"""Generate HTML mockup from ZAP JSON report."""
 
 import json
 from pathlib import Path
 
 
 def load_zap_json(json_path: Path) -> dict:
-    """Load ZAP JSON report"""
+    """Load ZAP JSON report."""
     with open(json_path, encoding="utf-8") as f:
         return json.load(f)
 
 
 def convert_to_mockup_data(zap_data: dict) -> dict:
-    """Convert ZAP JSON to mockup data format"""
+    """Convert ZAP JSON to mockup data format."""
     site_info = zap_data.get("site", [{}])[0]
     site_name = site_info.get("@name", "Unknown")
     alerts = site_info.get("alerts", [])
@@ -40,7 +38,7 @@ def convert_to_mockup_data(zap_data: dict) -> dict:
         instances = alert.get("instances", [])
 
         # Count unique URLs affected
-        unique_urls = len(set(inst.get("uri", "") for inst in instances))
+        unique_urls = len({inst.get("uri", "") for inst in instances})
 
         # Create summary entry
         summary_entry = {
@@ -48,10 +46,7 @@ def convert_to_mockup_data(zap_data: dict) -> dict:
             "risk": risk,
             "count": int(alert.get("count", len(instances))),
             "urls": unique_urls,
-            "description": alert.get("desc", "")
-            .replace("<p>", "")
-            .replace("</p>", "")[:200]
-            + "...",
+            "description": alert.get("desc", "").replace("<p>", "").replace("</p>", "")[:200] + "..."
         }
         mockup_summary.append(summary_entry)
 
@@ -64,7 +59,7 @@ def convert_to_mockup_data(zap_data: dict) -> dict:
                 "param": inst.get("param", ""),
                 "attack": inst.get("attack", ""),
                 "evidence": inst.get("evidence", ""),
-                "otherinfo": inst.get("otherinfo", ""),
+                "otherinfo": inst.get("otherinfo", "")
             }
             instance_details.append(instance_detail)
 
@@ -72,13 +67,9 @@ def convert_to_mockup_data(zap_data: dict) -> dict:
             "name": alert.get("alert", "Unknown Alert"),
             "risk": risk,
             "description": alert.get("desc", "").replace("<p>", "").replace("</p>", ""),
-            "solution": alert.get("solution", "")
-            .replace("<p>", "")
-            .replace("</p>", ""),
-            "reference": alert.get("reference", "")
-            .replace("<p>", "")
-            .replace("</p>", ""),
-            "instances": instance_details,
+            "solution": alert.get("solution", "").replace("<p>", "").replace("</p>", ""),
+            "reference": alert.get("reference", "").replace("<p>", "").replace("</p>", ""),
+            "instances": instance_details
         }
         mockup_alerts.append(mockup_alert)
 
@@ -86,12 +77,12 @@ def convert_to_mockup_data(zap_data: dict) -> dict:
         "site": site_name,
         "date": generated,
         "summary": mockup_summary,
-        "alerts": mockup_alerts,
+        "alerts": mockup_alerts
     }
 
 
 def generate_mockup_html(mockup_data: dict, template_path: Path, output_path: Path):
-    """Generate mockup HTML"""
+    """Generate mockup HTML."""
     with open(template_path, encoding="utf-8") as f:
         template = f.read()
 
@@ -101,14 +92,14 @@ def generate_mockup_html(mockup_data: dict, template_path: Path, output_path: Pa
 
     # Replace the reportData in template
     mockup_html = template.replace(
-        "        const reportData = {",
+        '        const reportData = {',
         f'''        const reportData = {{
-            site: "{mockup_data["site"]}",
-            date: "{mockup_data["date"]}",
+            site: "{mockup_data['site']}",
+            date: "{mockup_data['date']}",
             summary: {summary_js},
             alerts: {alerts_js}
         }};
-        const reportData_old = {{''',
+        const reportData_old = {{'''
     )
 
     with open(output_path, "w", encoding="utf-8") as f:
