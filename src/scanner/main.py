@@ -161,8 +161,14 @@ Examples:
         type=Path,
         help="Path to scan configuration preset file (e.g., resources/config/fast-scan.json)",
     )
+    scan_group.add_argument(
+        "--addon",
+        action="append",
+        dest="addons",
+        help="ZAP AddOn to install (can be used multiple times, e.g., --addon jwt --addon graphql). Default: authhelper, ascanrules, bruteforce, spiderAjax, sqliplugin",
+    )
 
-    args = parser.parse_args()
+    args = parser.parse_intermixed_args()
     return args
 
 
@@ -207,6 +213,14 @@ def validate_scan_config(args: argparse.Namespace) -> ScanConfig:
         network_name=args.network_name,
         language=args.language,
         config_file=args.config_file,
+        addons=args.addons
+        or [
+            "authhelper",
+            "ascanrules",
+            "bruteforce",
+            "spiderAjax",
+            "sqliplugin",
+        ],
         report_dir=args.report_dir or Path.cwd() / "report",
     )
 

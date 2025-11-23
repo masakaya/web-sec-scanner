@@ -15,23 +15,6 @@ Modern Python Webセキュリティスキャナー - Prefectワークフロー�
 WebSecScannerは、Webアプリケーションのセキュリティ脆弱性を検出するための最新のPythonベーススキャナーです。
 Prefectによるワークフローオーケストレーションと、WebGoatによる実践的なテスト環境を統合しています。
 
-### 主な特徴
-
-- ✅ **高速パッケージ管理**: [uv](https://github.com/astral-sh/uv) による爆速の依存関係管理
-- ✅ **自動コード品質チェック**: Ruff による linting とフォーマット
-- ✅ **静的型チェック**: mypy による型安全性の保証
-- ✅ **自動テスト**: pytest + カバレッジレポート
-- ✅ **タスクランナー**: Poe the Poet による統一されたコマンド
-- ✅ **ワークフローオーケストレーション**: Prefect によるタスク管理と監視
-- ✅ **テスト環境**: WebGoat によるセキュリティテスト環境
-- ✅ **コミットメッセージ強制**: gitlint による Conventional Commits 検証
-- ✅ **自動バージョニング**: release-please による自動リリース管理
-- ✅ **ブランチ自動プロモーション**: main → staging → production の自動PR作成
-- ✅ **コンフリクト自動解決**: プロモーション時のコンフリクトを自動解決
-- ✅ **GitHub Actions 統合**: reviewdog による自動コードレビュー
-- ✅ **自動フォーマット**: PR時に自動的にコード整形＋コミット
-- ✅ **依存関係自動更新**: Renovate による定期的な依存関係更新
-
 ---
 
 ## 🚀 クイックスタート
@@ -57,7 +40,7 @@ uv sync --all-groups
 uv run poe setup-hooks
 
 # WebGoatテスト環境を起動（オプション）
-uv run poe webgoat-start
+docker compose up -d
 
 # 開発準備完了！
 ```
@@ -70,14 +53,211 @@ uv run poe webgoat-start
 
 ```bash
 # WebGoat起動
-uv run poe webgoat-start
+docker compose up -d
 
 # WebGoat停止
-uv run poe webgoat-stop
+docker compose down
 ```
 
 WebGoatは意図的に脆弱性を含んだWebアプリケーションで、セキュリティ診断ツールでスキャンしてレポートを生成するためのテスト対象として使用します。
 詳細は [docs/WEBGOAT.md](docs/WEBGOAT.md) を参照してください。
+
+### Juice Shopテスト環境（オプション）
+
+JWT/Bearer認証のテストには、Juice Shop環境を利用できます：
+
+```bash
+# Juice Shop起動
+docker compose up -d juice-shop
+
+# Juice Shop停止
+docker compose down juice-shop
+
+# JWTトークン取得（ヘルパースクリプト）
+./scripts/get-juice-shop-token.sh
+```
+
+Juice ShopはモダンなSPA（Single Page Application）として実装された脆弱性学習プラットフォームで、JWT/Bearer認証を使用したセキュリティスキャンのテスト対象として最適です。
+詳細は [docs/JUICE_SHOP.md](docs/JUICE_SHOP.md) を参照してください。
+
+### スキャンコマンド
+
+本プロジェクトでは、セキュリティスキャンを実行するための便利なpoeタスクを提供しています。
+
+#### 推奨: プリセットを使用した高速実行
+
+最も簡単な方法は、プリセット設定を使用したpoeタスクです：
+
+```bash
+# 高速スキャン（1-3分、fast-scan.json使用）
+uv run poe fast-scan -- <target_url> [認証オプション]
+
+# 徹底的スキャン（10-30分、thorough-scan.json使用）
+uv run poe thorough-scan -- <target_url> [認証オプション]
+```
+
+**プリセットのメリット**：
+- Spider、Active Scan、Passive Scanの設定が最適化済み
+- 認証設定はコマンドライン引数で柔軟に指定可能
+- レポートディレクトリ名でスキャンタイプを識別しやすい（`fast-*`、`thorough-*`）
+
+#### 汎用スキャナー
+
+より細かい制御が必要な場合は、scanタスクを使用できます：
+
+```bash
+uv run poe scan -- <scan_type> <target_url> [オプション]
+```
+
+詳細な引数リファレンスは以下を参照してください。
+
+### セキュリティスキャン コマンドライン引数リファレンス
+
+#### スキャンタイプ
+
+| タイプ | 説明 | 用途 |
+|--------|------|------|
+| `baseline` | 基本的な受動スキャン | 安全で高速な初期チェック |
+| `full` | 完全スキャン（Spider + Active Scan） | 徹底的な脆弱性検査 |
+| `api` | APIスキャン | REST API専用 |
+| `automation` | Automation Framework | カスタム設定ファイルによる柔軟なスキャン |
+
+**スキャンタイプと設定ファイルの関係**
+
+| タイプ | `--config-file` | 制御方法 |
+|--------|----------------|---------|
+| `baseline` | **使用不可** | コマンドライン引数のみで制御 |
+| `full` | **使用不可** | コマンドライン引数のみで制御 |
+| `api` | **使用不可** | コマンドライン引数のみで制御 |
+| `automation` | **使用可能** | 設定ファイル（fast-scan.json、thorough-scan.json）で詳細設定が可能。未指定時はデフォルト設定で動作 |
+
+#### 認証オプション
+
+| 引数 | 説明 | 例 |
+|------|------|-----|
+| `--auth-type` | 認証方式: `none`, `form`, `json`, `basic`, `bearer` | `--auth-type form` |
+| `--username` | ユーザー名 | `--username admin` |
+| `--password` | パスワード | `--password secret` |
+| `--login-url` | ログインエンドポイントURL | `--login-url http://example.com/login` |
+| `--username-field` | ユーザー名フィールド名 | `--username-field email` |
+| `--password-field` | パスワードフィールド名 | `--password-field passwd` |
+| `--logged-in-indicator` | ログイン成功を示す正規表現 | `--logged-in-indicator "Logout"` |
+| `--logged-out-indicator` | ログアウト状態を示す正規表現 | `--logged-out-indicator "Login"` |
+| `--session-method` | セッション管理方式: `cookie`, `http` | `--session-method cookie` |
+| `--auth-token` | Bearer トークン（JWT、API キーなど） | `--auth-token $JWT_TOKEN` |
+| `--auth-header` | トークン認証のヘッダー名 | `--auth-header Authorization` |
+| `--token-prefix` | トークンプレフィックス（`none` で無し） | `--token-prefix Bearer` |
+
+#### スキャンオプション
+
+| 引数 | 説明 | デフォルト | 例 |
+|------|------|-----------|-----|
+| `--ajax-spider` | AJAX Spider を有効化（JavaScript多用サイト向け） | 無効 | `--ajax-spider` |
+| `--max-duration` | 最大スキャン時間（分） | 30 | `--max-duration 60` |
+| `--max-depth` | 最大クロール深度 | 10 | `--max-depth 15` |
+| `--max-children` | ノードあたりの最大子要素数 | 20 | `--max-children 50` |
+| `--thread-per-host` | ホストあたりのスレッド数 | 10 | `--thread-per-host 8` |
+| `--hosts-per-scan` | 並列スキャンするホスト数 | 5 | `--hosts-per-scan 3` |
+| `--network` | Docker ネットワーク名（未指定時は自動検出） | 自動検出 | `--network webgoat_default` |
+| `--report-dir` | レポート保存ディレクトリ | `./report` | `--report-dir /tmp/reports` |
+| `--language` | スキャナーとレポートの言語 | `ja_JP` | `--language en_US` |
+| `--config-file` | スキャン設定プリセットファイル | なし | `--config-file resources/config/fast-scan.json` |
+| `--addon` | ZAP AddOn（複数指定可能） | authhelper, ascanrules, bruteforce, spiderAjax, sqliplugin | `--addon jwt --addon graphql` |
+
+#### ZAPアドオン
+
+本スキャナーは、OWASP ZAPの機能を拡張するアドオン（AddOn）を使用します。デフォルトで以下のアドオンが自動インストールされます：
+
+| アドオン | 説明 | 用途 |
+|---------|------|------|
+| **authhelper** | Authentication Helper | ブラウザベースの認証、セッション管理の自動検出、環境変数認証サポート |
+| **ascanrules** | Active Scan Rules | OWASP Top 10カバレッジを含む脆弱性検出ルール |
+| **bruteforce** | Brute Force Detection | ブルートフォース攻撃検出、パスワード攻撃識別 |
+| **spiderAjax** | AJAX Spider | JavaScript多用サイトのクローリング（`--ajax-spider`に必要） |
+| **sqliplugin** | Advanced SQL Injection Scanner | SQLMap技術ベースの高度なSQLインジェクション検出 |
+
+**Authentication Helper AddOnの特徴**:
+- **ブラウザベース認証**: 実際のブラウザを使用した認証フロー（フォーム認証に対応）
+- **自動検出**: セッション管理とログイン状態の自動検出によりエラー削減
+- **環境変数サポート**: Bearer/JWT認証に対応
+- **ZAP公式サポート**: ZAPチームによりメンテナンスされた標準手法
+
+**カスタムアドオンの追加**:
+```bash
+# デフォルトアドオンに加えてJWT/GraphQLサポートを追加
+uv run poe fast-scan -- http://example.com --addon jwt --addon graphql
+
+# 特定のアドオンのみを使用（デフォルトを置き換え）
+uv run poe scan -- automation http://example.com --addon jwt
+```
+
+#### スキャン設定プリセット
+
+| ファイル | 説明 | スキャン時間（目安） |
+|---------|------|---------------------|
+| `resources/config/fast-scan.json` | 高速スキャン（開発・CI向け） | 1-3分 |
+| `resources/config/thorough-scan.json` | 徹底的スキャン（本番前チェック） | 10-30分 |
+
+#### 実行例
+
+```bash
+# 1. 高速スキャン（WebGoat、フォーム認証）
+uv run poe fast-scan -- http://webgoat:8080/WebGoat/ \
+  --username masakaya \
+  --password Password \
+  --auth-type form \
+  --login-url http://webgoat:8080/WebGoat/login \
+  --logged-in-indicator "Sign Out"
+
+# 2. 徹底的スキャン（WebGoat、フォーム認証）
+uv run poe thorough-scan -- http://webgoat:8080/WebGoat/ \
+  --username masakaya \
+  --password Password \
+  --auth-type form \
+  --login-url http://webgoat:8080/WebGoat/login \
+  --logged-in-indicator "Sign Out"
+
+# 3. 高速スキャン（Juice Shop、Bearer認証）
+export JWT_TOKEN='your-jwt-token-here'
+uv run poe fast-scan -- http://juice-shop:3000 \
+  --auth-type bearer \
+  --auth-token "$JWT_TOKEN"
+
+# 4. 汎用スキャナー（APIスキャン、Bearer認証）
+uv run poe scan -- api http://api.example.com \
+  --auth-type bearer \
+  --auth-token $JWT_TOKEN \
+  --max-duration 10
+
+# 5. 汎用スキャナー（ベースラインスキャン、認証なし）
+uv run poe scan -- baseline http://example.com
+```
+
+#### レポート確認
+
+スキャン完了後、レポートディレクトリに以下の形式でレポートが生成されます：
+
+```bash
+report/
+├── fast-20251123_093000/          # fast-scan.json使用時
+│   ├── scan-report.html
+│   ├── scan-report.json
+│   └── scan-report.xml
+└── thorough-20251123_140000/      # thorough-scan.json使用時
+    ├── scan-report.html
+    ├── scan-report.json
+    └── scan-report.xml
+```
+
+HTMLレポートをブラウザで確認：
+
+```bash
+# Linux
+xdg-open report/fast-*/scan-report.html
+
+# macOS
+open report/fast-*/scan-report.html
+```
 
 ### Bearer/JWT認証によるセキュリティスキャン
 
@@ -96,52 +276,23 @@ docker compose up -d juice-shop
 #### スキャン実行例
 
 ```bash
-# 1. 高速スキャン（Automation Framework）- 約3分
+# 1. 高速スキャン（fast-scan.json使用） - 約1-3分
 export JWT_TOKEN='your-jwt-token-here'
-PYTHONPATH=src uv run python -m scanner.main automation http://juice-shop:3000 \
+uv run poe fast-scan -- http://juice-shop:3000 \
+  --auth-type bearer \
+  --auth-token "$JWT_TOKEN"
+
+# 2. 徹底的スキャン（thorough-scan.json使用） - 約10-30分
+uv run poe thorough-scan -- http://juice-shop:3000 \
+  --auth-type bearer \
+  --auth-token "$JWT_TOKEN"
+
+# 3. 汎用スキャナー（APIスキャン） - 約5-10分
+uv run poe scan -- api http://juice-shop:3000 \
   --auth-type bearer \
   --auth-token "$JWT_TOKEN" \
-  --network web-sec-scanner_default \
-  --config-file resources/config/fast-scan.json \
-  --max-duration 3
-
-# 2. フルスキャン - 約10-15分（※Bearer認証は現在automation/apiスキャンのみ対応）
-# PYTHONPATH=src uv run python -m scanner.main full http://juice-shop:3000 \
-#   --auth-type bearer \
-#   --auth-token "$JWT_TOKEN" \
-#   --network web-sec-scanner_default \
-#   --ajax-spider \
-#   --max-duration 10
-
-# 3. APIスキャン - 約5-10分
-PYTHONPATH=src uv run python -m scanner.main api http://juice-shop:3000 \
-  --auth-type bearer \
-  --auth-token "$JWT_TOKEN" \
-  --network web-sec-scanner_default \
   --max-duration 10
 ```
-
-#### スキャン結果の確認
-
-スキャン完了後、`report/` ディレクトリにレポートが生成されます：
-
-```bash
-# レポート一覧
-ls -lh report/
-
-# HTMLレポートをブラウザで開く
-xdg-open report/<scan-directory>/scan-report.html  # Linux
-open report/<scan-directory>/scan-report.html      # macOS
-```
-
-#### 対応する認証方式
-
-| 認証方式 | パラメータ | 用途 |
-|---------|-----------|------|
-| **Bearer** | `--auth-type bearer --auth-token <token>` | JWT/API Token認証（SPA、REST API） |
-| **Form** | `--auth-type form --username <user> --password <pass>` | フォームベース認証 |
-| **JSON** | `--auth-type json --username <user> --password <pass>` | JSON APIログイン |
-| **Basic** | `--auth-type basic --username <user> --password <pass>` | Basic認証 |
 
 詳細な使い方とトラブルシューティングは [docs/JUICE_SHOP.md](docs/JUICE_SHOP.md) を参照してください。
 
@@ -230,7 +381,7 @@ git commit --no-verify -m "message"
 
 ---
 
-## 🛠️ 利用可能なツール
+## 📚 ドキュメント
 
 ### コード品質
 
@@ -240,7 +391,8 @@ git commit --no-verify -m "message"
 | **mypy** | 静的型チェック | [docs/MYPY.md](docs/MYPY.md) |
 | **pytest** | テスティング | [docs/TESTING.md](docs/TESTING.md) |
 | **Prefect** | ワークフローオーケストレーション | [docs/PREFECT.md](docs/PREFECT.md) |
-| **WebGoat** | セキュリティテスト環境 | [docs/WEBGOAT.md](docs/WEBGOAT.md) |
+| **WebGoat** | セキュリティテスト環境（フォーム認証） | [docs/WEBGOAT.md](docs/WEBGOAT.md) |
+| **Juice Shop** | セキュリティテスト環境（JWT/Bearer認証） | [docs/JUICE_SHOP.md](docs/JUICE_SHOP.md) |
 | **Renovate** | 依存関係自動更新 | [docs/RENOVATE.md](docs/RENOVATE.md) |
 
 ### タスク管理
@@ -252,63 +404,14 @@ git commit --no-verify -m "message"
 poe
 
 # よく使うコマンド
-poe lint           # Ruff linting
-poe format         # コードフォーマット
-poe typecheck      # 型チェック
-poe test           # テスト実行
-poe check          # 全チェック実行
-poe prefect-server # Prefectサーバー起動（IP自動検出、外部アクセス可能）
+poe lint              # Ruff linting
+poe format            # コードフォーマット
+poe typecheck         # 型チェック
+poe test              # テスト実行
+poe check             # 全チェック実行
+poe prefect-server    # Prefectサーバー起動（IP自動検出、外部アクセス可能）
 poe prefect-example   # Prefectサンプルフロー実行
-poe webgoat-start  # WebGoat起動
-poe webgoat-stop   # WebGoat停止
 ```
-
----
-
-## 📚 ドキュメント
-
-各ツールの詳細な使い方とベストプラクティスは、以下のドキュメントを参照してください：
-
-### Ruff（コード品質）
-**[docs/RUFF.md](docs/RUFF.md)**
-- Ruffの基本的な使い方
-- IDE統合（VSCode、PyCharmなど）
-- コマンドライン実行
-- GitHub Actions 自動フォーマット
-- reviewdog 連携
-
-### mypy（型チェック）
-**[docs/MYPY.md](docs/MYPY.md)**
-- mypyの概要とメリット
-- 型チェックの実行方法
-- 型アノテーションの書き方
-- 段階的な型導入
-- よくあるエラーと対処法
-- GitHub Actions 統合
-
-### pytest（テスト）
-**[docs/TESTING.md](docs/TESTING.md)**
-- テストの書き方
-- テスト実行方法
-- カバレッジレポート
-- マーカーの使い方
-- ベストプラクティス
-
-### Prefect（ワークフローオーケストレーション）
-**[docs/PREFECT.md](docs/PREFECT.md)**
-- Prefectの基本的な使い方
-- フローとタスクの定義
-- スケジュール実行
-- ダッシュボードの使い方
-- ベストプラクティス
-
-### WebGoat（セキュリティテスト環境）
-**[docs/WEBGOAT.md](docs/WEBGOAT.md)**
-- WebGoatの基本的な使い方
-- テスト環境の起動・停止
-- セキュリティ診断ツールとの連携
-- レポート出力のテスト方法
-- セキュリティ上の注意事項
 
 ---
 
@@ -449,57 +552,6 @@ requires-python = ">=3.12"
 ### mypy設定の変更
 
 `pyproject.toml` の `[tool.mypy]` セクションで調整
-
----
-
-## 📝 タスクコマンド一覧
-
-```bash
-# Linting
-poe lint              # チェックのみ
-poe lint-fix          # 自動修正
-poe lint-unsafe       # 安全でない修正も実行
-
-# フォーマット
-poe format            # フォーマット実行
-poe format-check      # チェックのみ
-
-# 型チェック
-poe typecheck         # 全体チェック
-poe typecheck <file>  # 特定ファイル
-poe typecheck-strict  # 厳格モード
-poe typecheck-review  # reviewdogで確認
-
-# テスト
-poe test              # テスト実行
-poe test-cov          # カバレッジ付き
-poe test-verbose      # 詳細出力
-
-# Prefect
-poe prefect-server    # Prefectサーバー起動（IP自動検出、外部アクセス可能）
-poe prefect-example   # サンプルフロー実行
-poe prefect-deploy    # フローデプロイ
-
-# WebGoat
-poe webgoat-start     # WebGoat起動
-poe webgoat-stop      # WebGoat停止
-poe webgoat-logs      # WebGoatログ表示
-poe webgoat-restart   # WebGoat再起動
-
-# reviewdog（ローカル）
-poe review-local      # Ruff reviewdog
-poe typecheck-review  # mypy reviewdog
-
-# 統合
-poe check             # 全チェック
-poe fix               # 自動修正可能なもの全て
-poe ci                # CI用チェック
-
-# その他
-poe clean             # キャッシュ削除
-poe install           # 依存関係インストール
-poe update            # 依存関係更新
-```
 
 ---
 

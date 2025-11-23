@@ -79,13 +79,10 @@ curl -X POST http://localhost:3000/rest/user/login \
 # 環境変数にトークンを保存
 export JWT_TOKEN="eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
 
-# fullスキャン実行
-PYTHONPATH=src uv run python -m scanner.main full http://juice-shop:3000 \
+# 高速スキャン実行
+uv run poe fast-scan -- http://juice-shop:3000 \
   --auth-type bearer \
-  --auth-token "$JWT_TOKEN" \
-  --network web-sec-scanner_default \
-  --ajax-spider \
-  --max-duration 10
+  --auth-token "$JWT_TOKEN"
 ```
 
 ---
@@ -119,36 +116,28 @@ curl -H "Authorization: Bearer $JWT_TOKEN" \
 
 ## 🎯 スキャンタイプ別の実行例
 
-### 1. 高速スキャン (Automation Framework)
+### 1. 高速スキャン（fast-scan.json使用）
 
 ```bash
-PYTHONPATH=src uv run python -m scanner.main automation http://juice-shop:3000 \
+uv run poe fast-scan -- http://juice-shop:3000 \
   --auth-type bearer \
-  --auth-token "$JWT_TOKEN" \
-  --network web-sec-scanner_default \
-  --config-file resources/config/fast-scan.json \
-  --max-duration 5
+  --auth-token "$JWT_TOKEN"
 ```
 
-### 2. フルスキャン (推奨)
+### 2. 徹底的スキャン（thorough-scan.json使用、推奨）
 
 ```bash
-PYTHONPATH=src uv run python -m scanner.main full http://juice-shop:3000 \
+uv run poe thorough-scan -- http://juice-shop:3000 \
   --auth-type bearer \
-  --auth-token "$JWT_TOKEN" \
-  --network web-sec-scanner_default \
-  --ajax-spider \
-  --max-duration 15 \
-  --thread-per-host 15
+  --auth-token "$JWT_TOKEN"
 ```
 
-### 3. APIスキャン
+### 3. APIスキャン（汎用スキャナー使用）
 
 ```bash
-PYTHONPATH=src uv run python -m scanner.main api http://juice-shop:3000 \
+uv run poe scan -- api http://juice-shop:3000 \
   --auth-type bearer \
   --auth-token "$JWT_TOKEN" \
-  --network web-sec-scanner_default \
   --max-duration 10
 ```
 
@@ -264,16 +253,12 @@ TOKEN2=$(./scripts/get-juice-shop-token.sh user2@test.com password2)
 
 ```bash
 # 認証なしでスキャン
-PYTHONPATH=src uv run python -m scanner.main full http://juice-shop:3000 \
-  --network web-sec-scanner_default \
-  --max-duration 10
+uv run poe fast-scan -- http://juice-shop:3000
 
 # 認証ありでスキャン
-PYTHONPATH=src uv run python -m scanner.main full http://juice-shop:3000 \
+uv run poe fast-scan -- http://juice-shop:3000 \
   --auth-type bearer \
-  --auth-token "$JWT_TOKEN" \
-  --network web-sec-scanner_default \
-  --max-duration 10
+  --auth-token "$JWT_TOKEN"
 
 # 検出された脆弱性の差を比較
 ```

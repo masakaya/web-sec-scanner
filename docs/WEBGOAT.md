@@ -25,9 +25,6 @@ WebGoatは、OWASPが提供する意図的に脆弱性を含んだWebアプリ�
 
 ```bash
 # WebGoat環境を起動
-poe webgoat-start
-
-# または、docker composeコマンドで直接起動
 docker compose up -d
 ```
 
@@ -53,23 +50,15 @@ WebGoat環境が起動したら、以下のURLにアクセスできます：
 
 ```bash
 # 環境を起動
-poe webgoat-start
-# または
 docker compose up -d
 
 # 環境を停止
-poe webgoat-stop
-# または
 docker compose down
 
 # ログを確認
-poe webgoat-logs
-# または
 docker compose logs -f webgoat
 
 # 環境を再起動
-poe webgoat-restart
-# または
 docker compose restart
 
 # 環境を完全削除（データも削除）

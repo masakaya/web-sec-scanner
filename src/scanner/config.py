@@ -71,6 +71,18 @@ class ScanConfig(BaseModel):
         None, description="Path to scan configuration preset file"
     )
 
+    # AddOn configuration
+    addons: list[str] = Field(
+        default_factory=lambda: [
+            "authhelper",
+            "ascanrules",
+            "bruteforce",
+            "spiderAjax",
+            "sqliplugin",
+        ],
+        description="ZAP AddOns to install (e.g., authhelper, ascanrules, bruteforce, spiderAjax, sqliplugin, jwt, graphql, soap)",
+    )
+
     # Output directory
     report_dir: Path = Field(
         default_factory=lambda: find_project_root() / "report",

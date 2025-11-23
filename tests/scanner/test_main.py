@@ -38,6 +38,7 @@ class TestValidateScanConfig:
             network_name=None,
             language="ja_JP",
             config_file=None,
+            addons=None,
             report_dir=None,
         )
 
@@ -74,6 +75,7 @@ class TestValidateScanConfig:
             network_name="test_network",
             language="ja_JP",
             config_file=None,
+            addons=None,
             report_dir=Path("/tmp/reports"),
         )
 
@@ -114,6 +116,7 @@ class TestValidateScanConfig:
             network_name=None,
             language="ja_JP",
             config_file=None,
+            addons=None,
             report_dir=custom_dir,
         )
 
@@ -147,6 +150,7 @@ class TestValidateScanConfig:
             network_name=None,
             language="ja_JP",
             config_file=None,
+            addons=None,
             report_dir=None,
         )
 

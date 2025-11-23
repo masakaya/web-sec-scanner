@@ -18,10 +18,17 @@
     "policy": "Default Policy",
     "maxRuleDurationInMins": 5,
     "maxScanDurationInMins": 10,
-    "threadPerHost": 10
+    "threadPerHost": 10,
+    "enableTags": false
   },
 
   "passive_scan_config": {
     "maxDuration": 2
+  },
+
+  "sqliplugin_config": {
+    "enabled": true,
+    "attackStrength": "MEDIUM",
+    "alertThreshold": "MEDIUM"
   }
 }
