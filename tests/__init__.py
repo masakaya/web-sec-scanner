@@ -1,1 +1,1 @@
-"""Tests for python-uv-project."""
+"""Tests for web security scanner."""

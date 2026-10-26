@@ -26,6 +26,7 @@ exclude = [
     "node_modules",       # Node.jsの依存パッケージ
     "site-packages",      # Pythonの依存パッケージ
     "venv",               # 仮想環境ディレクトリの別名
+    "tests",              # テストディレクトリ
 ]
 
 # Blackと同じ設定で、1行の長さを88文字に設定

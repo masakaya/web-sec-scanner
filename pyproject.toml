@@ -1,10 +1,14 @@
 [project]
-name = "python-uv-project"
+name = "web-sec-scanner"
 version = "0.2.1"
-description = "Add your description here"
+description = "Modern Python web security scanner with Prefect workflows and WebGoat testing environment"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "jinja2>=3.1.2",
+    "prefect>=3.6.4",
+    "pyyaml>=6.0.1",
+]
 
 [dependency-groups]
 dev = [
@@ -155,10 +159,69 @@ cmd = "pytest -f"
 help = "Run tests with verbose output"
 cmd = "pytest -v"
 
+# ----------------------------------------
+# Prefect
+# ----------------------------------------
+[tool.poe.tasks.prefect-server]
+help = "Start Prefect server (accessible from external hosts)"
+shell = """
+# 自動的にローカルIPアドレスを検出
+LOCAL_IP=$(hostname -I | awk '{print $1}' || echo "127.0.0.1")
+export PREFECT_UI_API_URL="${PREFECT_UI_API_URL:-http://$LOCAL_IP:4200/api}"
+echo "🚀 Starting Prefect server..."
+echo "📍 Local access:    http://127.0.0.1:4200"
+echo "🌐 External access: http://$LOCAL_IP:4200"
+echo "🔗 API URL:         $PREFECT_UI_API_URL"
+echo ""
+prefect server start --host 0.0.0.0
+"""
+
+[tool.poe.tasks.prefect-example]
+help = "Run example Prefect flow"
+cmd = "python src/example/example_flow.py"
+
+[tool.poe.tasks.prefect-deploy]
+help = "Deploy Prefect flows"
+cmd = "prefect deploy --all"
+
+# ----------------------------------------
+# Security Scanner
+# ----------------------------------------
+[tool.poe.tasks.scan]
+help = "Run security scanner (e.g., poe scan -- automation http://example.com --username admin)"
+cmd = "bash scripts/scan.sh ${argv}"
+
+[[tool.poe.tasks.scan.args]]
+name = "argv"
+positional = true
+multiple = true
+required = false
+
+[tool.poe.tasks.fast-scan]
+help = "Run fast security scan with fast-scan.json preset (e.g., poe fast-scan -- http://example.com --username admin --password secret)"
+cmd = "bash scripts/fast-scan.sh ${argv}"
+
+[[tool.poe.tasks.fast-scan.args]]
+name = "argv"
+positional = true
+multiple = true
+required = false
+
+[tool.poe.tasks.thorough-scan]
+help = "Run thorough security scan with thorough-scan.json preset (e.g., poe thorough-scan -- http://example.com --username admin --password secret)"
+cmd = "bash scripts/thorough-scan.sh ${argv}"
+
+[[tool.poe.tasks.thorough-scan.args]]
+name = "argv"
+positional = true
+multiple = true
+required = false
+
 # ========================================
 # pytest設定
 # ========================================
 [tool.pytest.ini_options]
+pythonpath = ["."]
 testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
@@ -224,6 +287,9 @@ exclude = [
     "^.venv/",
     "^build/",
     "^dist/",
+    "^tests/",
+    "^tmp/",
+    "^resources/templates/",
 ]
 
 # サードパーティライブラリの型スタブがない場合
@@ -231,5 +297,8 @@ exclude = [
 module = [
     "pytest.*",
     "pastel.*",
+    "prefect.*",
+    "yaml.*",
+    "utils",
 ]
 ignore_missing_imports = true
